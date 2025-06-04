@@ -1,0 +1,269 @@
+---
+/* On importe uniquement la feuille de style Cropper ici, au build time */
+import 'cropperjs/dist/cropper.css';
+---
+
+<section class="max-w-xl mx-auto p-6 space-y-6">
+    <!-- Zone d'upload (visible tant que files.length === 0) -->
+    <div
+            id="dropzone"
+            class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer transition-colors hover:border-gray-500"
+    >
+        <p class="text-gray-500">
+            Glissez-déposez des images ici, ou cliquez pour sélectionner
+        </p>
+        <input
+                type="file"
+                accept="image/*"
+                id="fileInput"
+                class="hidden"
+                multiple
+        />
+    </div>
+
+    <!-- Container de preview + contrôles (caché tant que files.length === 0) -->
+    <div id="previewContainer" class="hidden flex-col items-center space-y-4">
+        <!-- Image en cours de recadrage -->
+        <div class="w-full overflow-hidden">
+            <img
+                    id="imagePreview"
+                    src=""
+                    alt="Image à recadrer"
+                    class="max-w-full rounded-lg"
+            />
+        </div>
+
+        <!-- Boutons de navigation / suppression -->
+        <div class="flex space-x-2">
+            <button
+                    id="deleteButton"
+                    class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md"
+            >
+                Supprimer cette image
+            </button>
+            <button
+                    id="cropNextButton"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md"
+            >
+                Recadrer & Suivant
+            </button>
+        </div>
+    </div>
+</section>
+
+<!--
+  Ici, on place tout le code JS qui manipule le DOM et instancie Cropper & JSZip
+  dans un <script client:load> pour s'assurer que ça s'exécute uniquement dans le navigateur,
+  une fois le DOM monté.
+-->
+<script>
+    import Cropper from 'cropperjs';
+    import JSZip from 'jszip';
+
+    // --- RÉFÉRENCES AU DOM ---
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const cropNextButton = document.getElementById('cropNextButton');
+    const deleteButton = document.getElementById('deleteButton');
+
+    // --- ÉTAT GLOBAL ---
+    let files = [];          // Tableau des fichiers sélectionnés
+    let currentIndex = 0;    // Index de l'image active
+    let cropperInstance = null;
+    let croppedBlobs = [];   // Stocke les blobs WebP recadrés
+
+    // 1) Cliquer sur la zone pour ouvrir le file picker
+    dropzone.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    // 2) Gérer le drag & drop
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('border-gray-500', 'bg-gray-50');
+    });
+    dropzone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-gray-500', 'bg-gray-50');
+    });
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-gray-500', 'bg-gray-50');
+        const dt = e.dataTransfer;
+        if (dt.files && dt.files.length) {
+            handleFiles(dt.files);
+        }
+    });
+
+    // 3) Quand l’utilisateur choisit des fichiers via l’input (multiple possible)
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length) {
+            handleFiles(e.target.files);
+            // Réinitialiser la valeur pour pouvoir resélectionner les mêmes fichiers plus tard
+            fileInput.value = '';
+        }
+    });
+
+    // --- Fonction pour traiter un FileList ou tableau de File ---
+    function handleFiles(fileList) {
+        const newFiles = Array.from(fileList);
+        files = files.concat(newFiles);
+
+        // Masquer la dropzone et afficher le container de preview si au moins 1 image
+        if (files.length > 0) {
+            dropzone.classList.add('hidden');
+            previewContainer.classList.remove('hidden');
+        }
+
+        // Si on partait sans aucune image, on initialise le recadrage au premier élément
+        if (files.length === newFiles.length) {
+            currentIndex = 0;
+            croppedBlobs = [];
+            loadImageAtIndex(currentIndex);
+        }
+    }
+
+    // --- Charger l'image à l'index donné et initialiser Cropper ---
+    function loadImageAtIndex(index) {
+        // Détruire Cropper existant s’il existe
+        if (cropperInstance) {
+            cropperInstance.destroy();
+            cropperInstance = null;
+        }
+
+        // Lire le fichier via FileReader
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            imagePreview.src = evt.target.result;
+
+            imagePreview.onload = () => {
+                // Création de l'instance Cropper sur l'image
+                cropperInstance = new Cropper(imagePreview, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    autoCropArea: 1,
+                    background: false,
+                    movable: true,
+                    zoomable: true,
+                    rotatable: false,
+                    scalable: false,
+                });
+
+                // Mise à jour du texte du bouton selon l'index et le nombre total
+                if (files.length > 1) {
+                    if (index < files.length - 1) {
+                        cropNextButton.textContent = 'Recadrer & Suivant';
+                    } else {
+                        cropNextButton.textContent = 'Recadrer & Télécharger';
+                    }
+                } else {
+                    cropNextButton.textContent = 'Recadrer & Télécharger';
+                }
+            };
+        };
+        reader.readAsDataURL(files[index]);
+    }
+
+    // 4) Gérer la suppression de l'image courante
+    deleteButton.addEventListener('click', () => {
+        if (files.length === 0) return;
+
+        // Si un blob a déjà été généré pour cette position, on le supprime
+        if (croppedBlobs[currentIndex]) {
+            croppedBlobs.splice(currentIndex, 1);
+        }
+
+        // Retirer le fichier courant du tableau
+        files.splice(currentIndex, 1);
+
+        // Si plus aucune image, on réinitialise toute l'interface
+        if (files.length === 0) {
+            resetAll();
+            return;
+        }
+
+        // Si on supprimait la dernière image, on décale l'index
+        if (currentIndex >= files.length) {
+            currentIndex = files.length - 1;
+        }
+
+        loadImageAtIndex(currentIndex);
+    });
+
+    // 5) Gérer le bouton "Recadrer & Suivant" / "Recadrer & Télécharger"
+    cropNextButton.addEventListener('click', () => {
+        if (!cropperInstance) return;
+
+        // On récupère le canvas recadré (800×800 px)
+        const croppedCanvas = cropperInstance.getCroppedCanvas({
+            width: 800,
+            height: 800,
+            fillColor: '#fff',
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high',
+        });
+
+        // On convertit le canvas en blob WebP
+        croppedCanvas.toBlob(
+            async (blob) => {
+                croppedBlobs[currentIndex] = blob;
+
+                // Si on n'est pas sur la dernière image, on passe à la suivante
+                if (currentIndex < files.length - 1) {
+                    currentIndex++;
+                    loadImageAtIndex(currentIndex);
+                } else {
+                    // Dernière image recadrée → on télécharge
+                    if (files.length === 1) {
+                        // Une seule image → téléchargement direct
+                        downloadBlobAsFile(blob, 'image-croppee.webp');
+                        resetAll();
+                    } else {
+                        // Plusieurs images → on génère un ZIP
+                        await downloadZipFromBlobs(croppedBlobs);
+                        resetAll();
+                    }
+                }
+            },
+            'image/webp',
+            0.9
+        );
+    });
+
+    // --- Fonctions utilitaires ---
+
+    // Télécharger un Blob sous un nom de fichier donné
+    function downloadBlobAsFile(blob, filename) {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    // Générer un ZIP à partir d'un tableau de blobs et déclencher le téléchargement
+    async function downloadZipFromBlobs(blobs) {
+        const zip = new JSZip();
+        blobs.forEach((blob, idx) => {
+            zip.file(`image-${idx + 1}.webp`, blob);
+        });
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        downloadBlobAsFile(zipBlob, 'images-recadrees.zip');
+    }
+
+    // Réinitialiser totalement l'interface (après téléchargement ou suppression de tout)
+    function resetAll() {
+        files = [];
+        croppedBlobs = [];
+        currentIndex = 0;
+        if (cropperInstance) {
+            cropperInstance.destroy();
+            cropperInstance = null;
+        }
+        imagePreview.src = '';
+        previewContainer.classList.add('hidden');
+        dropzone.classList.remove('hidden');
+    }
+</script>

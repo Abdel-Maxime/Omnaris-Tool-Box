@@ -1,0 +1,32 @@
+---
+import '../styles/global.css';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+const { content } = Astro.props;
+
+// Generate a random nonce for CSP
+const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+---
+
+<html lang="fr-FR">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<!-- Security headers -->
+  <meta http-equiv="Content-Security-Policy" content={`default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:;`} />
+		<meta http-equiv="X-Content-Type-Options" content="nosniff" />
+		<meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
+		<meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+		<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+		<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
+		<link rel="icon" type="image/svg+xml" href="/icone.png" />
+		<title>{content.title}</title>
+	</head>
+	<body class="min-h-screen flex flex-col">
+		<Navigation />
+		<main class="pt-20 px-8 flex-grow">
+			<slot />
+		</main>
+		<Footer />
+	</body>
+</html>

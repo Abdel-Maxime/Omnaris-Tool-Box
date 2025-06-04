@@ -1,16 +1,16 @@
 ---
+// Component Imports
+import { Button } from "@/components/ui/button";
+import MainLayout from "../layouts/main.astro";
+import ImageCropper from '../components/imageCropper.astro';
 
+// Full Astro Component Syntax:
+// https://docs.astro.build/basics/astro-components/
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<MainLayout content={{ title: "Tool Box by Omnaris" }}>
+    <div class="container min-h-[70vh] flex flex-col justify-center mx-auto py-8">
+        <h1 class="text-3xl font-bold mb-8 text-center"> <span class="text-primary">Recadrez</span> en 1:1 et <span class="text-primary">compressez</span> en webp vos images produit en un clin d'oeil !</h1>
+        <ImageCropper />
+    </div>
+</MainLayout>
