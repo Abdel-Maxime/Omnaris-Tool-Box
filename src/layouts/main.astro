@@ -11,18 +11,6 @@ const nonce = Buffer.from(Math.random().toString(36) + Date.now().toString()).to
 
 <html lang="fr-FR">
 	<head>
-		<!-- 1. On autorise les scripts GTM et Analytics depuis leurs domaines -->
-		<meta
-			http-equiv="Content-Security-Policy"
-			content="
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com;
-        connect-src 'self' https://www.google-analytics.com;
-        img-src 'self' https://www.google-analytics.com https://www.googletagmanager.com data:;
-        style-src 'self' 'unsafe-inline';
-        frame-src https://www.googletagmanager.com;
-      "
-		/>
 		<!-- Google Tag Manager -->
 		<script client:load>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 				new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -33,7 +21,10 @@ const nonce = Buffer.from(Math.random().toString(36) + Date.now().toString()).to
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
 		<!-- Security headers -->
-  <meta http-equiv="Content-Security-Policy" content={`default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:;`} />
+		<meta
+			http-equiv="Content-Security-Policy"
+			content={`default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com; font-src 'self' data:; connect-src 'self' https://www.google-analytics.com; frame-src https://www.googletagmanager.com; worker-src 'self' blob:;`}
+		/>
 		<meta http-equiv="X-Content-Type-Options" content="nosniff" />
 		<meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
 		<meta http-equiv="X-XSS-Protection" content="1; mode=block" />
