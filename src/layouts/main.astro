@@ -10,8 +10,20 @@ const nonce = Buffer.from(Math.random().toString(36) + Date.now().toString()).to
 
 <html lang="fr-FR">
 	<head>
+		<!-- 1. On autorise les scripts GTM et Analytics depuis leurs domaines -->
+		<meta
+			http-equiv="Content-Security-Policy"
+			content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com;
+        connect-src 'self' https://www.google-analytics.com;
+        img-src 'self' https://www.google-analytics.com https://www.googletagmanager.com data:;
+        style-src 'self' 'unsafe-inline';
+        frame-src https://www.googletagmanager.com;
+      "
+		/>
 		<!-- Google Tag Manager -->
-		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+		<script client:load>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 				new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 			j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 			'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
