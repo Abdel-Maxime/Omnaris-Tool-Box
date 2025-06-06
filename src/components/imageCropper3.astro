@@ -1,0 +1,710 @@
+---
+/* Import des styles nécessaires */
+import 'cropperjs/dist/cropper.css';
+---
+
+<section class="max-w-4xl mx-auto p-6 space-y-6">
+    <!-- Zone d'upload -->
+    <div
+            id="dropzone"
+            class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer transition-colors hover:border-gray-500"
+    >
+        <p class="text-gray-500 mb-4">
+            Glissez-déposez des images ici, ou cliquez pour sélectionner
+        </p>
+        <p class="text-sm text-gray-400">
+            Formats supportés: JPG, PNG, WebP, GIF
+        </p>
+        <input
+                type="file"
+                accept="image/*"
+                id="fileInput"
+                class="hidden"
+                multiple
+        />
+    </div>
+
+    <!-- Configuration des traitements -->
+    <div id="configPanel" class="hidden bg-gray-50 rounded-lg p-6 space-y-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Configuration des traitements</h3>
+
+        <!-- Sélection des actions -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Redimensionnement -->
+            <div class="bg-white p-4 rounded-lg border">
+                <label class="flex items-center space-x-2 mb-3">
+                    <input type="checkbox" id="enableResize" class="action-checkbox">
+                    <span class="font-medium">Redimensionner</span>
+                </label>
+                <div id="resizeOptions" class="space-y-3 opacity-50">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Taille (%)</label>
+                        <input type="range" id="resizePercent" min="10" max="200" step="5" value="80" class="w-full">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>10%</span>
+                            <span id="resizePercentValue" class="font-medium">80%</span>
+                            <span>200%</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Les proportions sont conservées</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recadrage -->
+            <div class="bg-white p-4 rounded-lg border">
+                <label class="flex items-center space-x-2 mb-3">
+                    <input type="checkbox" id="enableCrop" class="action-checkbox">
+                    <span class="font-medium">Recadrer</span>
+                </label>
+                <div id="cropOptions" class="space-y-3 opacity-50">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Format:</label>
+                        <select id="aspectRatio" class="w-full border rounded px-2 py-1 text-sm">
+                            <option value="1/1">1:1 (Carré)</option>
+                            <option value="16/9">16:9 (Paysage)</option>
+                            <option value="4/3">4:3 (Standard)</option>
+                            <option value="3/4">3:4 (Portrait)</option>
+                            <option value="9/16">9:16 (Portrait mobile)</option>
+                            <option value="free">Libre</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Position:</label>
+                        <select id="cropPosition" class="w-full border rounded px-2 py-1 text-sm">
+                            <option value="center">Centre</option>
+                            <option value="top">Haut</option>
+                            <option value="bottom">Bas</option>
+                            <option value="left">Gauche</option>
+                            <option value="right">Droite</option>
+                            <option value="manual">Manuel (première image)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversion -->
+            <div class="bg-white p-4 rounded-lg border">
+                <label class="flex items-center space-x-2 mb-3">
+                    <input type="checkbox" id="enableConvert" class="action-checkbox">
+                    <span class="font-medium">Convertir</span>
+                </label>
+                <div id="convertOptions" class="space-y-3 opacity-50">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Format:</label>
+                        <select id="outputFormat" class="w-full border rounded px-2 py-1 text-sm">
+                            <option value="webp">WebP</option>
+                            <option value="jpeg">JPEG</option>
+                            <option value="png">PNG</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Qualité:</label>
+                        <input type="range" id="quality" min="60" max="100" step="5" value="90" class="w-full">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>60%</span>
+                            <span id="qualityValue" class="font-medium">90%</span>
+                            <span>100%</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Compression optimisée</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prévisualisation pour recadrage manuel -->
+        <div id="cropPreview" class="hidden">
+            <h4 class="font-medium mb-2">Prévisualisation du recadrage (appliqué à toutes les images):</h4>
+            <div class="max-w-md mx-auto">
+                <img id="previewImage" class="max-w-full rounded-lg">
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="flex justify-between items-center pt-4 border-t">
+            <div class="text-sm text-gray-600">
+                <span id="imageCount">0</span> image(s) sélectionnée(s)
+            </div>
+            <div class="space-x-3">
+                <button id="resetButton" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                    Réinitialiser
+                </button>
+                <button id="processButton" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Traiter les images
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barre de progression -->
+    <div id="progressPanel" class="hidden bg-white rounded-lg p-6 border">
+        <h3 class="font-semibold mb-4">Traitement en cours...</h3>
+        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+            <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between text-sm text-gray-600">
+            <span id="progressText">Initialisation...</span>
+            <span id="progressPercent">0%</span>
+        </div>
+    </div>
+</section>
+
+<script>
+    import Cropper from 'cropperjs';
+    import JSZip from 'jszip';
+
+    // --- RÉFÉRENCES DOM ---
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const configPanel = document.getElementById('configPanel');
+    const cropPreview = document.getElementById('cropPreview');
+    const previewImage = document.getElementById('previewImage');
+    const imageCount = document.getElementById('imageCount');
+    const progressPanel = document.getElementById('progressPanel');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressPercent = document.getElementById('progressPercent');
+
+    // Éléments de configuration
+    const enableResize = document.getElementById('enableResize');
+    const enableCrop = document.getElementById('enableCrop');
+    const enableConvert = document.getElementById('enableConvert');
+    const resizeOptions = document.getElementById('resizeOptions');
+    const cropOptions = document.getElementById('cropOptions');
+    const convertOptions = document.getElementById('convertOptions');
+    const resizePercentSlider = document.getElementById('resizePercent');
+    const resizePercentValue = document.getElementById('resizePercentValue');
+    const qualitySlider = document.getElementById('quality');
+    const qualityValue = document.getElementById('qualityValue');
+    const cropPosition = document.getElementById('cropPosition');
+    const aspectRatio = document.getElementById('aspectRatio');
+
+    const processButton = document.getElementById('processButton');
+    const resetButton = document.getElementById('resetButton');
+
+    // --- ÉTAT GLOBAL ---
+    let selectedFiles = [];
+    let cropperInstance = null;
+    let manualCropData = null;
+
+    // --- EVENT LISTENERS ---
+
+    // Upload de fichiers
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', handleDragOver);
+    dropzone.addEventListener('dragleave', handleDragLeave);
+    dropzone.addEventListener('drop', handleDrop);
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // Configuration des actions
+    document.querySelectorAll('.action-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateActionStates);
+    });
+
+    resizePercentSlider.addEventListener('input', () => {
+        resizePercentValue.textContent = resizePercentSlider.value + '%';
+    });
+
+    qualitySlider.addEventListener('input', () => {
+        qualityValue.textContent = qualitySlider.value + '%';
+    });
+
+    cropPosition.addEventListener('change', () => {
+        if (enableCrop.checked && cropPosition.value === 'manual') {
+            showCropPreview();
+        } else {
+            hideCropPreview();
+        }
+    });
+
+    aspectRatio.addEventListener('change', () => {
+        if (enableCrop.checked && cropPosition.value === 'manual' && cropperInstance) {
+            updateCropperAspectRatio();
+        }
+    });
+
+    // Boutons d'action
+    processButton.addEventListener('click', processImages);
+    resetButton.addEventListener('click', resetAll);
+
+    // --- FONCTIONS DE GESTION D'UPLOAD ---
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        dropzone.classList.add('border-blue-500', 'bg-blue-50');
+    }
+
+    function handleDragLeave(e) {
+        e.preventDefault();
+        dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+        const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+        handleFiles(files);
+    }
+
+    function handleFileSelect(e) {
+        const files = Array.from(e.target.files);
+        handleFiles(files);
+        fileInput.value = '';
+    }
+
+    function handleFiles(files) {
+        selectedFiles = files;
+        updateUI();
+    }
+
+    // --- FONCTIONS D'INTERFACE ---
+
+    function updateUI() {
+        if (selectedFiles.length > 0) {
+            dropzone.classList.add('hidden');
+            configPanel.classList.remove('hidden');
+            imageCount.textContent = selectedFiles.length;
+            updateProcessButton();
+        } else {
+            dropzone.classList.remove('hidden');
+            configPanel.classList.add('hidden');
+            hideCropPreview();
+        }
+    }
+
+    function updateActionStates() {
+        // Activer/désactiver les options selon les checkboxes
+        resizeOptions.style.opacity = enableResize.checked ? '1' : '0.5';
+        cropOptions.style.opacity = enableCrop.checked ? '1' : '0.5';
+        convertOptions.style.opacity = enableConvert.checked ? '1' : '0.5';
+
+        // Gérer l'affichage du crop preview
+        if (enableCrop.checked && cropPosition.value === 'manual') {
+            showCropPreview();
+        } else {
+            hideCropPreview();
+        }
+
+        updateProcessButton();
+    }
+
+    function updateProcessButton() {
+        const hasActions = enableResize.checked || enableCrop.checked || enableConvert.checked;
+        processButton.disabled = !hasActions || selectedFiles.length === 0;
+    }
+
+    function showCropPreview() {
+        if (selectedFiles.length > 0) {
+            cropPreview.classList.remove('hidden');
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewImage.onload = () => {
+                    initializeCropper();
+                };
+            };
+            reader.readAsDataURL(selectedFiles[0]);
+        }
+    }
+
+    function initializeCropper() {
+        if (cropperInstance) {
+            cropperInstance.destroy();
+        }
+
+        const ratio = parseAspectRatio(aspectRatio.value);
+        cropperInstance = new Cropper(previewImage, {
+            aspectRatio: ratio,
+            viewMode: 1,
+            autoCropArea: 0.8,
+            guides: true,
+            highlight: true,
+            movable: true,
+            zoomable: true,
+            rotatable: false,
+            scalable: false,
+            responsive: true,
+            checkOrientation: false,
+            crop: (event) => {
+                const { x, y, width, height } = event.detail;
+                const { naturalWidth, naturalHeight } = previewImage;
+
+                // Normaliser les coordonnées pour les appliquer à d'autres images
+                manualCropData = {
+                    x: x / naturalWidth,
+                    y: y / naturalHeight,
+                    width: width / naturalWidth,
+                    height: height / naturalHeight,
+                    aspectRatio: width / height
+                };
+            }
+        });
+    }
+
+    function updateCropperAspectRatio() {
+        if (cropperInstance) {
+            const ratio = parseAspectRatio(aspectRatio.value);
+            cropperInstance.setAspectRatio(ratio);
+        }
+    }
+
+    function hideCropPreview() {
+        cropPreview.classList.add('hidden');
+        if (cropperInstance) {
+            cropperInstance.destroy();
+            cropperInstance = null;
+        }
+        manualCropData = null;
+    }
+
+    function parseAspectRatio(ratioStr) {
+        if (ratioStr === 'free') return NaN;
+        const [w, h] = ratioStr.split('/').map(Number);
+        return h > 0 ? w / h : 1;
+    }
+
+    // --- TRAITEMENT DES IMAGES ---
+
+    async function processImages() {
+        if (selectedFiles.length === 0) return;
+
+        progressPanel.classList.remove('hidden');
+        configPanel.classList.add('hidden');
+
+        const processedBlobs = [];
+        const total = selectedFiles.length;
+
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            updateProgress(i, total, `Traitement de ${file.name}...`);
+
+            try {
+                const processedBlob = await processImage(file, i);
+                processedBlobs.push({
+                    blob: processedBlob,
+                    name: generateFileName(file.name, i)
+                });
+            } catch (error) {
+                console.error(`Erreur lors du traitement de ${file.name}:`, error);
+            }
+        }
+
+        updateProgress(total, total, 'Génération du téléchargement...');
+
+        // Téléchargement
+        if (processedBlobs.length === 1) {
+            downloadBlob(processedBlobs[0].blob, processedBlobs[0].name);
+        } else if (processedBlobs.length > 1) {
+            await downloadZip(processedBlobs);
+        }
+
+        setTimeout(() => {
+            resetAll();
+        }, 1000);
+    }
+
+    async function processImage(file, index) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = async () => {
+                try {
+                    let canvas = document.createElement('canvas');
+                    let ctx = canvas.getContext('2d');
+
+                    // Configuration du canvas avec l'image originale
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+
+                    // Amélioration de la qualité de rendu
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+
+                    // Dessiner l'image originale
+                    ctx.drawImage(img, 0, 0);
+
+                    // 1. Recadrage (avant redimensionnement pour éviter la perte de qualité)
+                    if (enableCrop.checked) {
+                        canvas = await applyCrop(canvas, img);
+                    }
+
+                    // 2. Redimensionnement
+                    if (enableResize.checked) {
+                        canvas = await applyResize(canvas);
+                    }
+
+                    // 3. Conversion avec compression optimisée
+                    if (enableConvert.checked) {
+                        const format = document.getElementById('outputFormat').value;
+                        const quality = parseFloat(qualitySlider.value) / 100;
+
+                        // Optimisation basée sur le format
+                        await convertWithOptimizedQuality(canvas, format, quality, resolve);
+                    } else {
+                        // Garder le format original avec une qualité optimisée
+                        const quality = file.type === 'image/png' ? 1 : 0.95;
+                        canvas.toBlob(resolve, file.type, quality);
+                    }
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    async function applyResize(canvas) {
+        const percent = parseFloat(resizePercentSlider.value) / 100;
+        const newWidth = Math.round(canvas.width * percent);
+        const newHeight = Math.round(canvas.height * percent);
+
+        // Utilisation d'un canvas temporaire pour un redimensionnement de haute qualité
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+
+        // Technique de redimensionnement progressif pour une meilleure qualité
+        if (percent < 0.5) {
+            // Redimensionnement en plusieurs étapes pour les réductions importantes
+            let currentWidth = canvas.width;
+            let currentHeight = canvas.height;
+            let currentCanvas = canvas;
+
+            while (currentWidth * 0.5 > newWidth || currentHeight * 0.5 > newHeight) {
+                const stepCanvas = document.createElement('canvas');
+                const stepCtx = stepCanvas.getContext('2d');
+
+                currentWidth = Math.round(currentWidth * 0.5);
+                currentHeight = Math.round(currentHeight * 0.5);
+
+                stepCanvas.width = currentWidth;
+                stepCanvas.height = currentHeight;
+                stepCtx.imageSmoothingEnabled = true;
+                stepCtx.imageSmoothingQuality = 'high';
+                stepCtx.drawImage(currentCanvas, 0, 0, currentWidth, currentHeight);
+
+                currentCanvas = stepCanvas;
+            }
+
+            tempCanvas.width = newWidth;
+            tempCanvas.height = newHeight;
+            tempCtx.imageSmoothingEnabled = true;
+            tempCtx.imageSmoothingQuality = 'high';
+            tempCtx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
+        } else {
+            // Redimensionnement direct pour les réductions moins importantes
+            tempCanvas.width = newWidth;
+            tempCanvas.height = newHeight;
+            tempCtx.imageSmoothingEnabled = true;
+            tempCtx.imageSmoothingQuality = 'high';
+            tempCtx.drawImage(canvas, 0, 0, newWidth, newHeight);
+        }
+
+        return tempCanvas;
+    }
+
+    async function applyCrop(canvas, originalImg) {
+        const position = cropPosition.value;
+        const aspectRatioStr = aspectRatio.value;
+
+        let cropData;
+
+        if (position === 'manual' && manualCropData) {
+            // Utiliser les proportions normalisées du crop manuel
+            cropData = {
+                x: manualCropData.x * canvas.width,
+                y: manualCropData.y * canvas.height,
+                width: manualCropData.width * canvas.width,
+                height: manualCropData.height * canvas.height
+            };
+        } else {
+            // Recadrage automatique
+            const targetRatio = parseAspectRatio(aspectRatioStr);
+
+            if (isNaN(targetRatio)) {
+                return canvas; // Pas de recadrage pour le format libre automatique
+            }
+
+            const currentRatio = canvas.width / canvas.height;
+            let cropWidth, cropHeight, cropX, cropY;
+
+            if (currentRatio > targetRatio) {
+                // Image trop large
+                cropHeight = canvas.height;
+                cropWidth = cropHeight * targetRatio;
+                cropY = 0;
+
+                switch (position) {
+                    case 'left': cropX = 0; break;
+                    case 'right': cropX = canvas.width - cropWidth; break;
+                    default: cropX = (canvas.width - cropWidth) / 2; break;
+                }
+            } else {
+                // Image trop haute
+                cropWidth = canvas.width;
+                cropHeight = cropWidth / targetRatio;
+                cropX = 0;
+
+                switch (position) {
+                    case 'top': cropY = 0; break;
+                    case 'bottom': cropY = canvas.height - cropHeight; break;
+                    default: cropY = (canvas.height - cropHeight) / 2; break;
+                }
+            }
+
+            cropData = { x: cropX, y: cropY, width: cropWidth, height: cropHeight };
+        }
+
+        // S'assurer que les dimensions de crop sont valides
+        cropData.x = Math.max(0, Math.min(cropData.x, canvas.width - 1));
+        cropData.y = Math.max(0, Math.min(cropData.y, canvas.height - 1));
+        cropData.width = Math.min(cropData.width, canvas.width - cropData.x);
+        cropData.height = Math.min(cropData.height, canvas.height - cropData.y);
+
+        const newCanvas = document.createElement('canvas');
+        newCanvas.width = Math.round(cropData.width);
+        newCanvas.height = Math.round(cropData.height);
+        const ctx = newCanvas.getContext('2d');
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        ctx.drawImage(
+            canvas,
+            Math.round(cropData.x), Math.round(cropData.y),
+            Math.round(cropData.width), Math.round(cropData.height),
+            0, 0,
+            Math.round(cropData.width), Math.round(cropData.height)
+        );
+
+        return newCanvas;
+    }
+
+    async function convertWithOptimizedQuality(canvas, format, quality, resolve) {
+        const mimeType = format === 'png' ? 'image/png' : `image/${format}`;
+
+        // Optimisations spécifiques par format
+        if (format === 'webp') {
+            // WebP supporte très bien la compression, on peut être plus agressif
+            const optimizedQuality = Math.max(0.8, quality);
+            canvas.toBlob(resolve, mimeType, optimizedQuality);
+        } else if (format === 'jpeg') {
+            // JPEG : appliquer un léger filtre de netteté avant compression
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            applySharpenFilter(imageData);
+            ctx.putImageData(imageData, 0, 0);
+
+            const optimizedQuality = Math.max(0.85, quality);
+            canvas.toBlob(resolve, mimeType, optimizedQuality);
+        } else {
+            // PNG : pas de compression destructive
+            canvas.toBlob(resolve, mimeType, 1);
+        }
+    }
+
+    function applySharpenFilter(imageData) {
+        const data = imageData.data;
+        const width = imageData.width;
+        const height = imageData.height;
+        const newData = new Uint8ClampedArray(data);
+
+        // Filtre de netteté léger
+        const kernel = [
+            0, -0.25, 0,
+            -0.25, 2, -0.25,
+            0, -0.25, 0
+        ];
+
+        for (let y = 1; y < height - 1; y++) {
+            for (let x = 1; x < width - 1; x++) {
+                for (let c = 0; c < 3; c++) { // RGB seulement
+                    let sum = 0;
+                    for (let ky = -1; ky <= 1; ky++) {
+                        for (let kx = -1; kx <= 1; kx++) {
+                            const idx = ((y + ky) * width + (x + kx)) * 4 + c;
+                            sum += data[idx] * kernel[(ky + 1) * 3 + (kx + 1)];
+                        }
+                    }
+                    const idx = (y * width + x) * 4 + c;
+                    newData[idx] = Math.max(0, Math.min(255, sum));
+                }
+            }
+        }
+
+        // Appliquer le filtre avec une intensité réduite
+        for (let i = 0; i < data.length; i += 4) {
+            for (let c = 0; c < 3; c++) {
+                data[i + c] = Math.round(data[i + c] * 0.8 + newData[i + c] * 0.2);
+            }
+        }
+    }
+
+    // --- FONCTIONS UTILITAIRES ---
+
+    function updateProgress(current, total, text) {
+        const percent = Math.round((current / total) * 100);
+        progressBar.style.width = percent + '%';
+        progressText.textContent = text;
+        progressPercent.textContent = percent + '%';
+    }
+
+    function generateFileName(originalName, index) {
+        const baseName = originalName.replace(/\.[^/.]+$/, '');
+        let extension = 'webp'; // par défaut
+
+        if (enableConvert.checked) {
+            extension = document.getElementById('outputFormat').value;
+            if (extension === 'jpeg') extension = 'jpg';
+        } else {
+            extension = originalName.split('.').pop().toLowerCase();
+        }
+
+        return `${baseName}_processed.${extension}`;
+    }
+
+    function downloadBlob(blob, filename) {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    async function downloadZip(processedBlobs) {
+        const zip = new JSZip();
+        processedBlobs.forEach(({ blob, name }) => {
+            zip.file(name, blob);
+        });
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        downloadBlob(zipBlob, 'images_processed.zip');
+    }
+
+    function resetAll() {
+        selectedFiles = [];
+        manualCropData = null;
+        hideCropPreview();
+
+        // Réinitialiser les checkboxes
+        document.querySelectorAll('.action-checkbox').forEach(cb => cb.checked = false);
+
+        // Réinitialiser les sliders
+        resizePercentSlider.value = 80;
+        resizePercentValue.textContent = '80%';
+        qualitySlider.value = 90;
+        qualityValue.textContent = '90%';
+
+        updateActionStates();
+
+        // Masquer les panneaux
+        configPanel.classList.add('hidden');
+        progressPanel.classList.add('hidden');
+        dropzone.classList.remove('hidden');
+
+        // Reset progress
+        progressBar.style.width = '0%';
+        progressText.textContent = 'Initialisation...';
+        progressPercent.textContent = '0%';
+    }
+
+    // Initialisation
+    updateActionStates();
+</script>
