@@ -1,0 +1,1034 @@
+---
+/* Import des styles nécessaires */
+import 'cropperjs/dist/cropper.css';
+---
+
+<section class="max-w-4xl mx-auto p-6 space-y-6">
+    <!-- Zone d'upload -->
+    <div
+            id="dropzone"
+            class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer transition-colors hover:border-gray-500"
+    >
+        <p class="text-gray-500 mb-4">
+            Glissez-déposez des images ici, ou cliquez pour sélectionner
+        </p>
+        <p class="text-sm text-gray-400">
+            Formats supportés: JPG, PNG, WebP, GIF (max 50MB par fichier)
+        </p>
+        <input
+                type="file"
+                accept="image/*"
+                id="fileInput"
+                class="hidden"
+                multiple
+        />
+    </div>
+
+    <!-- Zone de messages -->
+    <div id="messageContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Configuration des traitements -->
+    <div id="configPanel" class="hidden bg-gray-50 rounded-lg p-6 space-y-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Configuration des traitements</h3>
+
+        <!-- Sélection des actions -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Redimensionnement -->
+            <div class="bg-white p-4 rounded-lg border">
+                <label class="flex items-center space-x-2 mb-3">
+                    <input type="checkbox" id="enableResize" class="action-checkbox">
+                    <span class="font-medium">Redimensionner</span>
+                </label>
+                <div id="resizeOptions" class="space-y-3 opacity-50">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Taille (%)</label>
+                        <input type="range" id="resizePercent" min="10" max="200" step="5" value="80" class="w-full">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>10%</span>
+                            <span id="resizePercentValue" class="font-medium">80%</span>
+                            <span>200%</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Les proportions sont conservées</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recadrage -->
+            <div class="bg-white p-4 rounded-lg border">
+                <label class="flex items-center space-x-2 mb-3">
+                    <input type="checkbox" id="enableCrop" class="action-checkbox">
+                    <span class="font-medium">Recadrer</span>
+                </label>
+                <div id="cropOptions" class="space-y-3 opacity-50">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Format:</label>
+                        <select id="aspectRatio" class="w-full border rounded px-2 py-1 text-sm">
+                            <option value="1/1">1:1 (Carré)</option>
+                            <option value="16/9">16:9 (Paysage)</option>
+                            <option value="4/3">4:3 (Standard)</option>
+                            <option value="3/4">3:4 (Portrait)</option>
+                            <option value="9/16">9:16 (Portrait mobile)</option>
+                            <option value="free">Libre</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Position:</label>
+                        <select id="cropPosition" class="w-full border rounded px-2 py-1 text-sm">
+                            <option value="center">Centre</option>
+                            <option value="top">Haut</option>
+                            <option value="bottom">Bas</option>
+                            <option value="left">Gauche</option>
+                            <option value="right">Droite</option>
+                            <option value="manual">Manuel (première image)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversion -->
+            <div class="bg-white p-4 rounded-lg border">
+                <label class="flex items-center space-x-2 mb-3">
+                    <input type="checkbox" id="enableConvert" class="action-checkbox">
+                    <span class="font-medium">Convertir</span>
+                </label>
+                <div id="convertOptions" class="space-y-3 opacity-50">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Format:</label>
+                        <select id="outputFormat" class="w-full border rounded px-2 py-1 text-sm">
+                            <option value="webp">WebP</option>
+                            <option value="jpeg">JPEG</option>
+                            <option value="png">PNG</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Qualité:</label>
+                        <input type="range" id="quality" min="60" max="100" step="5" value="90" class="w-full">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>60%</span>
+                            <span id="qualityValue" class="font-medium">90%</span>
+                            <span>100%</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Compression optimisée</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prévisualisation pour recadrage manuel -->
+        <div id="cropPreview" class="hidden">
+            <h4 class="font-medium mb-2">Prévisualisation du recadrage (appliqué à toutes les images):</h4>
+            <div class="max-w-md mx-auto">
+                <img id="previewImage" class="max-w-full rounded-lg">
+            </div>
+        </div>
+
+        <!-- Informations sur les fichiers -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
+            <div class="flex justify-between items-center">
+                <div>
+                    <span id="imageCount">0</span> image(s) sélectionnée(s)
+                    <span id="totalSize" class="text-gray-600 ml-2"></span>
+                </div>
+                <div id="performanceEstimate" class="text-gray-600"></div>
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="flex justify-between items-center pt-4 border-t">
+            <button id="resetButton" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">
+                Réinitialiser
+            </button>
+            <button id="processButton" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                Traiter les images
+            </button>
+        </div>
+    </div>
+
+    <!-- Barre de progression -->
+    <div id="progressPanel" class="hidden bg-white rounded-lg p-6 border">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-semibold">Traitement en cours...</h3>
+            <button id="cancelButton" class="px-3 py-1 text-sm text-red-600 border border-red-300 rounded hover:bg-red-50">
+                Annuler
+            </button>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+            <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between text-sm text-gray-600">
+            <span id="progressText">Initialisation...</span>
+            <span id="progressPercent">0%</span>
+        </div>
+        <div id="timeRemaining" class="text-xs text-gray-500 mt-2"></div>
+        
+        <!-- Liste des erreurs -->
+        <div id="errorsList" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded">
+            <h4 class="text-sm font-medium text-red-800 mb-2">Erreurs rencontrées:</h4>
+            <ul id="errorsContent" class="text-xs text-red-700 space-y-1"></ul>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Styles pour les messages */
+    .message {
+        @apply px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out;
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    .message-info {
+        @apply bg-blue-500 text-white;
+    }
+    
+    .message-success {
+        @apply bg-green-500 text-white;
+    }
+    
+    .message-error {
+        @apply bg-red-500 text-white;
+    }
+    
+    .message-warning {
+        @apply bg-yellow-500 text-white;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+<script>
+    import Cropper from 'cropperjs';
+    import JSZip from 'jszip';
+
+    // --- CONFIGURATION ---
+    const CONFIG = {
+        MAX_FILE_SIZE: 50 * 1024 * 1024, // 50MB par fichier
+        MAX_TOTAL_SIZE: 200 * 1024 * 1024, // 200MB total
+        MAX_DIMENSION: 4096, // Dimension maximale pour éviter les problèmes de mémoire
+        CHUNK_SIZE: 5, // Nombre d'images à traiter en parallèle
+        USE_WORKER: typeof Worker !== 'undefined' && false // Désactivé par défaut, à activer si worker disponible
+    };
+
+    // --- RÉFÉRENCES DOM ---
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const configPanel = document.getElementById('configPanel');
+    const cropPreview = document.getElementById('cropPreview');
+    const previewImage = document.getElementById('previewImage');
+    const imageCount = document.getElementById('imageCount');
+    const totalSize = document.getElementById('totalSize');
+    const performanceEstimate = document.getElementById('performanceEstimate');
+    const progressPanel = document.getElementById('progressPanel');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressPercent = document.getElementById('progressPercent');
+    const timeRemaining = document.getElementById('timeRemaining');
+    const cancelButton = document.getElementById('cancelButton');
+    const errorsList = document.getElementById('errorsList');
+    const errorsContent = document.getElementById('errorsContent');
+    const messageContainer = document.getElementById('messageContainer');
+
+    // Éléments de configuration
+    const enableResize = document.getElementById('enableResize');
+    const enableCrop = document.getElementById('enableCrop');
+    const enableConvert = document.getElementById('enableConvert');
+    const resizeOptions = document.getElementById('resizeOptions');
+    const cropOptions = document.getElementById('cropOptions');
+    const convertOptions = document.getElementById('convertOptions');
+    const resizePercentSlider = document.getElementById('resizePercent');
+    const resizePercentValue = document.getElementById('resizePercentValue');
+    const qualitySlider = document.getElementById('quality');
+    const qualityValue = document.getElementById('qualityValue');
+    const cropPosition = document.getElementById('cropPosition');
+    const aspectRatio = document.getElementById('aspectRatio');
+
+    const processButton = document.getElementById('processButton');
+    const resetButton = document.getElementById('resetButton');
+
+    // --- ÉTAT GLOBAL ---
+    let selectedFiles = [];
+    let cropperInstance = null;
+    let manualCropData = null;
+    let abortController = null;
+    let startTime = null;
+    let preloadedImage = null;
+    let imageCache = new Map();
+
+    // --- EVENT LISTENERS ---
+
+    // Upload de fichiers
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', handleDragOver);
+    dropzone.addEventListener('dragleave', handleDragLeave);
+    dropzone.addEventListener('drop', handleDrop);
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // Configuration des actions
+    document.querySelectorAll('.action-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateActionStates);
+    });
+
+    resizePercentSlider.addEventListener('input', () => {
+        resizePercentValue.textContent = resizePercentSlider.value + '%';
+        updatePerformanceEstimate();
+    });
+
+    qualitySlider.addEventListener('input', () => {
+        qualityValue.textContent = qualitySlider.value + '%';
+    });
+
+    cropPosition.addEventListener('change', () => {
+        if (enableCrop.checked && cropPosition.value === 'manual') {
+            showCropPreview();
+        } else {
+            hideCropPreview();
+        }
+    });
+
+    aspectRatio.addEventListener('change', () => {
+        if (enableCrop.checked && cropPosition.value === 'manual' && cropperInstance) {
+            updateCropperAspectRatio();
+        }
+    });
+
+    // Boutons d'action
+    processButton.addEventListener('click', processImages);
+    resetButton.addEventListener('click', resetAll);
+    cancelButton.addEventListener('click', cancelProcessing);
+
+    // --- FONCTIONS DE GESTION D'UPLOAD ---
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        dropzone.classList.add('border-blue-500', 'bg-blue-50');
+    }
+
+    function handleDragLeave(e) {
+        e.preventDefault();
+        dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+        const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+        handleFiles(files);
+    }
+
+    function handleFileSelect(e) {
+        const files = Array.from(e.target.files);
+        handleFiles(files);
+        fileInput.value = '';
+    }
+
+    function handleFiles(files) {
+        // Validation de la taille des fichiers
+        const validFiles = [];
+        let totalValidSize = 0;
+        
+        for (const file of files) {
+            if (file.size > CONFIG.MAX_FILE_SIZE) {
+                showMessage(`${file.name} dépasse la taille maximale de 50MB`, 'warning');
+                continue;
+            }
+            
+            if (totalValidSize + file.size > CONFIG.MAX_TOTAL_SIZE) {
+                showMessage('La taille totale des fichiers dépasse 200MB', 'warning');
+                break;
+            }
+            
+            validFiles.push(file);
+            totalValidSize += file.size;
+        }
+        
+        if (validFiles.length === 0) {
+            return;
+        }
+        
+        selectedFiles = validFiles;
+        updateUI();
+        
+        // Précharger la première image si nécessaire
+        if (validFiles.length > 0 && enableCrop.checked && cropPosition.value === 'manual') {
+            preloadFirstImage(validFiles[0]);
+        }
+        
+        showMessage(`${validFiles.length} image(s) sélectionnée(s)`, 'info');
+    }
+
+    async function preloadFirstImage(file) {
+        if (preloadedImage && preloadedImage.file === file) {
+            return preloadedImage; // Déjà préchargée
+        }
+
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preloadedImage = {
+                    file: file,
+                    dataUrl: e.target.result
+                };
+                resolve(preloadedImage);
+            };
+            reader.onerror = () => {
+                reject(new Error(`Impossible de précharger l'image: ${file.name}`));
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // --- FONCTIONS D'INTERFACE ---
+
+    function updateUI() {
+        if (selectedFiles.length > 0) {
+            dropzone.classList.add('hidden');
+            configPanel.classList.remove('hidden');
+            imageCount.textContent = selectedFiles.length;
+            
+            // Afficher la taille totale
+            const totalBytes = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+            totalSize.textContent = `(${formatFileSize(totalBytes)} total)`;
+            
+            updatePerformanceEstimate();
+            updateProcessButton();
+        } else {
+            dropzone.classList.remove('hidden');
+            configPanel.classList.add('hidden');
+            hideCropPreview();
+        }
+    }
+
+    function updatePerformanceEstimate() {
+        if (selectedFiles.length === 0) return;
+        
+        let estimatedTime = selectedFiles.length * 0.5; // Base: 0.5s par image
+        
+        if (enableResize.checked) {
+            const scale = parseFloat(resizePercentSlider.value) / 100;
+            estimatedTime += selectedFiles.length * 0.2 * (1 / scale);
+        }
+        
+        if (enableCrop.checked) {
+            estimatedTime += selectedFiles.length * 0.3;
+        }
+        
+        if (enableConvert.checked) {
+            estimatedTime += selectedFiles.length * 0.4;
+        }
+        
+        performanceEstimate.textContent = `Temps estimé: ~${formatTime(estimatedTime * 1000)}`;
+    }
+
+    function updateActionStates() {
+        // Activer/désactiver les options selon les checkboxes
+        resizeOptions.style.opacity = enableResize.checked ? '1' : '0.5';
+        resizeOptions.style.pointerEvents = enableResize.checked ? 'auto' : 'none';
+        
+        cropOptions.style.opacity = enableCrop.checked ? '1' : '0.5';
+        cropOptions.style.pointerEvents = enableCrop.checked ? 'auto' : 'none';
+        
+        convertOptions.style.opacity = enableConvert.checked ? '1' : '0.5';
+        convertOptions.style.pointerEvents = enableConvert.checked ? 'auto' : 'none';
+
+        // Gérer l'affichage du crop preview
+        if (enableCrop.checked && cropPosition.value === 'manual') {
+            showCropPreview();
+        } else {
+            hideCropPreview();
+        }
+
+        updateProcessButton();
+        updatePerformanceEstimate();
+    }
+
+    function updateProcessButton() {
+        const hasActions = enableResize.checked || enableCrop.checked || enableConvert.checked;
+        processButton.disabled = !hasActions || selectedFiles.length === 0;
+    }
+
+    function showCropPreview() {
+        if (selectedFiles.length > 0) {
+            cropPreview.classList.remove('hidden');
+            
+            // Utiliser l'image préchargée si disponible
+            if (preloadedImage && preloadedImage.file === selectedFiles[0]) {
+                previewImage.src = preloadedImage.dataUrl;
+                previewImage.onload = () => initializeCropper();
+            } else {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewImage.onload = () => initializeCropper();
+                };
+                reader.readAsDataURL(selectedFiles[0]);
+            }
+        }
+    }
+
+    function initializeCropper() {
+        if (cropperInstance) {
+            cropperInstance.destroy();
+        }
+
+        const ratio = parseAspectRatio(aspectRatio.value);
+        cropperInstance = new Cropper(previewImage, {
+            aspectRatio: ratio,
+            viewMode: 1,
+            autoCropArea: 0.8,
+            guides: true,
+            highlight: true,
+            movable: true,
+            zoomable: true,
+            rotatable: false,
+            scalable: false,
+            responsive: true,
+            checkOrientation: false,
+            ready() {
+                // Limiter la taille initiale du crop box
+                const containerData = cropperInstance.getContainerData();
+                cropperInstance.setCropBoxData({
+                    width: Math.min(containerData.width * 0.8, 800),
+                    height: Math.min(containerData.height * 0.8, 600)
+                });
+            },
+            crop: (event) => {
+                const { x, y, width, height } = event.detail;
+                const { naturalWidth, naturalHeight } = previewImage;
+
+                // Normaliser les coordonnées pour les appliquer à d'autres images
+                manualCropData = {
+                    x: x / naturalWidth,
+                    y: y / naturalHeight,
+                    width: width / naturalWidth,
+                    height: height / naturalHeight,
+                    aspectRatio: width / height
+                };
+            }
+        });
+    }
+
+    function updateCropperAspectRatio() {
+        if (cropperInstance) {
+            const ratio = parseAspectRatio(aspectRatio.value);
+            cropperInstance.setAspectRatio(ratio);
+        }
+    }
+
+    function hideCropPreview() {
+        cropPreview.classList.add('hidden');
+        if (cropperInstance) {
+            cropperInstance.destroy();
+            cropperInstance = null;
+        }
+        manualCropData = null;
+    }
+
+    function parseAspectRatio(ratioStr) {
+        if (ratioStr === 'free') return NaN;
+        const [w, h] = ratioStr.split('/').map(Number);
+        return h > 0 ? w / h : 1;
+    }
+
+    // --- FONCTIONS DE MESSAGERIE ---
+
+    function showMessage(message, type = 'info') {
+        const messageEl = document.createElement('div');
+        messageEl.className = `message message-${type}`;
+        messageEl.textContent = message;
+        messageContainer.appendChild(messageEl);
+        
+        setTimeout(() => {
+            messageEl.style.opacity = '0';
+            setTimeout(() => messageEl.remove(), 300);
+        }, 3000);
+    }
+
+    // --- TRAITEMENT DES IMAGES ---
+
+    async function processImages() {
+        if (selectedFiles.length === 0) return;
+
+        startTime = Date.now();
+        abortController = new AbortController();
+        
+        progressPanel.classList.remove('hidden');
+        configPanel.classList.add('hidden');
+        errorsList.classList.add('hidden');
+        errorsContent.innerHTML = '';
+
+        const processedBlobs = [];
+        const errors = [];
+        const total = selectedFiles.length;
+
+        try {
+            // Traiter les images par chunks pour éviter la surcharge mémoire
+            for (let i = 0; i < selectedFiles.length; i += CONFIG.CHUNK_SIZE) {
+                if (abortController.signal.aborted) {
+                    throw new Error('Traitement annulé');
+                }
+                
+                const chunk = selectedFiles.slice(i, i + CONFIG.CHUNK_SIZE);
+                const chunkResults = await Promise.all(
+                    chunk.map(async (file, index) => {
+                        const globalIndex = i + index;
+                        updateProgress(globalIndex, total, `Traitement de ${file.name}...`);
+                        
+                        try {
+                            const processedBlob = await processImage(file, globalIndex);
+                            return {
+                                success: true,
+                                blob: processedBlob,
+                                name: generateFileName(file.name, globalIndex)
+                            };
+                        } catch (error) {
+                            console.error(`Erreur lors du traitement de ${file.name}:`, error);
+                            return {
+                                success: false,
+                                error: { file: file.name, message: error.message }
+                            };
+                        }
+                    })
+                );
+                
+                // Séparer les succès et les erreurs
+                chunkResults.forEach(result => {
+                    if (result.success) {
+                        processedBlobs.push({ blob: result.blob, name: result.name });
+                    } else {
+                        errors.push(result.error);
+                    }
+                });
+            }
+            
+            // Afficher les erreurs s'il y en a
+            if (errors.length > 0) {
+                showErrorSummary(errors);
+            }
+
+            updateProgress(total, total, 'Génération du téléchargement...');
+
+            // Téléchargement
+            if (processedBlobs.length === 1) {
+                downloadBlob(processedBlobs[0].blob, processedBlobs[0].name);
+            } else if (processedBlobs.length > 1) {
+                await downloadZip(processedBlobs);
+            }
+
+            showMessage(`${processedBlobs.length} image(s) traitée(s) avec succès`, 'success');
+
+        } catch (error) {
+            if (error.message === 'Traitement annulé') {
+                showMessage('Traitement annulé par l\'utilisateur', 'warning');
+            } else {
+                showMessage(`Erreur: ${error.message}`, 'error');
+            }
+        } finally {
+            // Nettoyer le cache
+            imageCache.clear();
+            
+            setTimeout(() => {
+                resetAll();
+            }, 1000);
+        }
+    }
+
+    async function processImage(file, index) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const objectUrl = URL.createObjectURL(file);
+            
+            img.onload = async () => {
+                try {
+                    // Vérifier et ajuster la taille si nécessaire
+                    let width = img.naturalWidth;
+                    let height = img.naturalHeight;
+                    
+                    if (width > CONFIG.MAX_DIMENSION || height > CONFIG.MAX_DIMENSION) {
+                        const scale = Math.min(CONFIG.MAX_DIMENSION / width, CONFIG.MAX_DIMENSION / height);
+                        width = Math.round(width * scale);
+                        height = Math.round(height * scale);
+                        showMessage(`${file.name} redimensionnée pour optimiser les performances`, 'info');
+                    }
+                    
+                    // Utiliser OffscreenCanvas si disponible
+                    let canvas;
+                    if (typeof OffscreenCanvas !== 'undefined') {
+                        canvas = new OffscreenCanvas(width, height);
+                    } else {
+                        canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                    }
+                    
+                    let ctx = canvas.getContext('2d');
+
+                    // Amélioration de la qualité de rendu
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+
+                    // Dessiner l'image
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // 1. Recadrage (avant redimensionnement pour éviter la perte de qualité)
+                    if (enableCrop.checked) {
+                        canvas = await applyCrop(canvas, img);
+                    }
+
+                    // 2. Redimensionnement
+                    if (enableResize.checked) {
+                        canvas = await applyResize(canvas);
+                    }
+
+                    // 3. Conversion avec compression optimisée
+                    if (enableConvert.checked) {
+                        const format = document.getElementById('outputFormat').value;
+                        const quality = parseFloat(qualitySlider.value) / 100;
+
+                        await convertWithOptimizedQuality(canvas, format, quality, resolve);
+                    } else {
+                        // Garder le format original avec une qualité optimisée
+                        const quality = file.type === 'image/png' ? 1 : 0.95;
+                        canvas.toBlob(resolve, file.type, quality);
+                    }
+                } catch (error) {
+                    reject(error);
+                } finally {
+                    // Libérer la mémoire
+                    URL.revokeObjectURL(objectUrl);
+                }
+            };
+            
+            img.onerror = () => {
+                URL.revokeObjectURL(objectUrl);
+                reject(new Error('Impossible de charger l\'image'));
+            };
+            
+            img.src = objectUrl;
+        });
+    }
+
+    async function applyResize(canvas) {
+        const percent = parseFloat(resizePercentSlider.value) / 100;
+        const newWidth = Math.round(canvas.width * percent);
+        const newHeight = Math.round(canvas.height * percent);
+
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+
+        tempCanvas.width = newWidth;
+        tempCanvas.height = newHeight;
+        tempCtx.imageSmoothingEnabled = true;
+        tempCtx.imageSmoothingQuality = 'high';
+        tempCtx.drawImage(canvas, 0, 0, newWidth, newHeight);
+
+        return tempCanvas;
+    }
+
+    async function applyCrop(canvas, originalImg) {
+        const position = cropPosition.value;
+        const aspectRatioStr = aspectRatio.value;
+
+        let cropData;
+
+        if (position === 'manual' && manualCropData) {
+            // Utiliser les proportions normalisées du crop manuel
+            cropData = {
+                x: manualCropData.x * canvas.width,
+                y: manualCropData.y * canvas.height,
+                width: manualCropData.width * canvas.width,
+                height: manualCropData.height * canvas.height
+            };
+        } else {
+            // Recadrage automatique
+            const targetRatio = parseAspectRatio(aspectRatioStr);
+
+            if (isNaN(targetRatio)) {
+                return canvas; // Pas de recadrage pour le format libre automatique
+            }
+
+            const currentRatio = canvas.width / canvas.height;
+            let cropWidth, cropHeight, cropX, cropY;
+
+            if (currentRatio > targetRatio) {
+                // Image trop large
+                cropHeight = canvas.height;
+                cropWidth = cropHeight * targetRatio;
+                cropY = 0;
+
+                switch (position) {
+                    case 'left': cropX = 0; break;
+                    case 'right': cropX = canvas.width - cropWidth; break;
+                    default: cropX = (canvas.width - cropWidth) / 2; break;
+                }
+            } else {
+                // Image trop haute
+                cropWidth = canvas.width;
+                cropHeight = cropWidth / targetRatio;
+                cropX = 0;
+
+                switch (position) {
+                    case 'top': cropY = 0; break;
+                    case 'bottom': cropY = canvas.height - cropHeight; break;
+                    default: cropY = (canvas.height - cropHeight) / 2; break;
+                }
+            }
+
+            cropData = { x: cropX, y: cropY, width: cropWidth, height: cropHeight };
+        }
+
+        // S'assurer que les dimensions de crop sont valides
+        cropData.x = Math.max(0, Math.min(cropData.x, canvas.width - 1));
+        cropData.y = Math.max(0, Math.min(cropData.y, canvas.height - 1));
+        cropData.width = Math.min(cropData.width, canvas.width - cropData.x);
+        cropData.height = Math.min(cropData.height, canvas.height - cropData.y);
+
+        // Vérifier que les dimensions sont positives
+        if (cropData.width <= 0 || cropData.height <= 0) {
+            console.warn('Dimensions de recadrage invalides, retour à l\'image originale');
+            return canvas;
+        }
+
+        const newCanvas = document.createElement('canvas');
+        newCanvas.width = Math.round(cropData.width);
+        newCanvas.height = Math.round(cropData.height);
+        const ctx = newCanvas.getContext('2d');
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        ctx.drawImage(
+            canvas,
+            Math.round(cropData.x), Math.round(cropData.y),
+            Math.round(cropData.width), Math.round(cropData.height),
+            0, 0,
+            Math.round(cropData.width), Math.round(cropData.height)
+        );
+
+        return newCanvas;
+    }
+
+    async function convertWithOptimizedQuality(canvas, format, quality, resolve) {
+        const mimeType = format === 'png' ? 'image/png' : `image/${format}`;
+
+        // Optimisations spécifiques par format
+        if (format === 'webp') {
+            // WebP supporte très bien la compression, on peut être plus agressif
+            const optimizedQuality = Math.max(0.8, quality);
+            canvas.toBlob(resolve, mimeType, optimizedQuality);
+        } else if (format === 'jpeg') {
+            // JPEG : appliquer un léger filtre de netteté avant compression
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            
+            // Appliquer le filtre seulement sur les images de taille raisonnable
+            if (canvas.width * canvas.height < 4000000) { // < 4 megapixels
+                applySharpenFilter(imageData);
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            const optimizedQuality = Math.max(0.85, quality);
+            canvas.toBlob(resolve, mimeType, optimizedQuality);
+        } else {
+            // PNG : pas de compression destructive
+            canvas.toBlob(resolve, mimeType, 1);
+        }
+    }
+
+    function applySharpenFilter(imageData) {
+        const data = imageData.data;
+        const width = imageData.width;
+        const height = imageData.height;
+        const newData = new Uint8ClampedArray(data);
+
+        // Filtre de netteté léger
+        const kernel = [
+            0, -0.25, 0,
+            -0.25, 2, -0.25,
+            0, -0.25, 0
+        ];
+
+        for (let y = 1; y < height - 1; y++) {
+            for (let x = 1; x < width - 1; x++) {
+                for (let c = 0; c < 3; c++) { // RGB seulement
+                    let sum = 0;
+                    for (let ky = -1; ky <= 1; ky++) {
+                        for (let kx = -1; kx <= 1; kx++) {
+                            const idx = ((y + ky) * width + (x + kx)) * 4 + c;
+                            sum += data[idx] * kernel[(ky + 1) * 3 + (kx + 1)];
+                        }
+                    }
+                    const idx = (y * width + x) * 4 + c;
+                    newData[idx] = Math.max(0, Math.min(255, sum));
+                }
+            }
+        }
+
+        // Appliquer le filtre avec une intensité réduite
+        for (let i = 0; i < data.length; i += 4) {
+            for (let c = 0; c < 3; c++) {
+                data[i + c] = Math.round(data[i + c] * 0.8 + newData[i + c] * 0.2);
+            }
+        }
+    }
+
+    // --- FONCTIONS UTILITAIRES ---
+
+    function updateProgress(current, total, text) {
+        const percent = Math.round((current / total) * 100);
+        progressBar.style.width = percent + '%';
+        progressText.textContent = text;
+        progressPercent.textContent = percent + '%';
+        
+        // Calculer et afficher le temps restant
+        if (startTime && current > 0) {
+            const elapsed = Date.now() - startTime;
+            const timePerItem = elapsed / current;
+            const remaining = timePerItem * (total - current);
+            timeRemaining.textContent = `Temps restant: ${formatTime(remaining)}`;
+        }
+    }
+
+    function generateFileName(originalName, index) {
+        const baseName = originalName.replace(/\.[^/.]+$/, '');
+        let extension = 'webp'; // par défaut
+
+        if (enableConvert.checked) {
+            extension = document.getElementById('outputFormat').value;
+            if (extension === 'jpeg') extension = 'jpg';
+        } else {
+            extension = originalName.split('.').pop().toLowerCase();
+        }
+
+        return `${baseName}_processed.${extension}`;
+    }
+
+    function downloadBlob(blob, filename) {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        
+        // Libérer la mémoire après un court délai
+        setTimeout(() => URL.revokeObjectURL(link.href), 100);
+    }
+
+    async function downloadZip(processedBlobs) {
+        const zip = new JSZip();
+        
+        // Ajouter les fichiers au zip par chunks pour éviter les problèmes de mémoire
+        for (const { blob, name } of processedBlobs) {
+            zip.file(name, blob);
+        }
+        
+        const zipBlob = await zip.generateAsync({ 
+            type: 'blob',
+            compression: 'DEFLATE',
+            compressionOptions: { level: 6 } // Compression moyenne pour équilibrer vitesse/taille
+        });
+        
+        downloadBlob(zipBlob, 'images_processed.zip');
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function formatTime(milliseconds) {
+        const seconds = Math.floor(milliseconds / 1000);
+        if (seconds < 60) {
+            return `${seconds}s`;
+        }
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}m ${remainingSeconds}s`;
+    }
+
+    function showErrorSummary(errors) {
+        if (errors.length === 0) return;
+        
+        errorsList.classList.remove('hidden');
+        errorsContent.innerHTML = '';
+        
+        errors.forEach(error => {
+            const li = document.createElement('li');
+            li.textContent = `${error.file}: ${error.message}`;
+            errorsContent.appendChild(li);
+        });
+        
+        showMessage(`${errors.length} erreur(s) rencontrée(s)`, 'error');
+    }
+
+    function cancelProcessing() {
+        if (abortController) {
+            abortController.abort();
+        }
+    }
+
+    function resetAll() {
+        selectedFiles = [];
+        manualCropData = null;
+        preloadedImage = null;
+        imageCache.clear();
+        hideCropPreview();
+
+        // Réinitialiser les checkboxes
+        document.querySelectorAll('.action-checkbox').forEach(cb => cb.checked = false);
+
+        // Réinitialiser les sliders
+        resizePercentSlider.value = 80;
+        resizePercentValue.textContent = '80%';
+        qualitySlider.value = 90;
+        qualityValue.textContent = '90%';
+
+        // Réinitialiser les selects
+        cropPosition.value = 'center';
+        aspectRatio.value = '1/1';
+        document.getElementById('outputFormat').value = 'webp';
+
+        updateActionStates();
+
+        // Masquer les panneaux
+        configPanel.classList.add('hidden');
+        progressPanel.classList.add('hidden');
+        dropzone.classList.remove('hidden');
+
+        // Reset progress
+        progressBar.style.width = '0%';
+        progressText.textContent = 'Initialisation...';
+        progressPercent.textContent = '0%';
+        timeRemaining.textContent = '';
+        
+        // Nettoyer les erreurs
+        errorsList.classList.add('hidden');
+        errorsContent.innerHTML = '';
+        
+        // Annuler tout traitement en cours
+        if (abortController) {
+            abortController.abort();
+            abortController = null;
+        }
+    }
+
+    // --- INITIALISATION ---
+    updateActionStates();
+    
+    // Nettoyer les ressources au déchargement de la page
+    window.addEventListener('beforeunload', () => {
+        imageCache.clear();
+        if (cropperInstance) {
+            cropperInstance.destroy();
+        }
+    });
+</script>
