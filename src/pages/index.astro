@@ -10,16 +10,359 @@ import ImageCropper5 from '../components/imageCropper5.astro';
 
 <MainLayout content={{ title: "Tool Box by Omnaris" }}>
     <div class="container min-h-[70vh] flex flex-col justify-center mx-auto py-8">
-        <section class="bg-white ">
+        <!-- Hero Section avec l'outil -->
+        <section class="bg-white">
             <div class="py-8 px-4 flex flex-col gap-6 justify-center items-center mx-auto max-w-screen-xl text-center lg:py-16 lg:px-12">
-                <p class="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-gray-700 bg-gray-100 rounded-full  hover:bg-gray-200 " role="alert">
-                    <span class="text-xs bg-primary-600 rounded-full text-primary px-4 py-1.5 mr-3">New</span> <span class="text-sm font-medium">Tool Box by Omnaris est disponible !</span>
+                <p class="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200" role="alert">
+                    <span class="text-xs bg-primary-600 rounded-full text-primary px-4 py-1.5 mr-3">New</span> 
+                    <span class="text-sm font-medium">Tool Box by Omnaris est disponible !</span>
                     <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
                 </p>
-                <h1 class="mb-4 text-4xl font-bold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-5xl "><span class="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text bg-[length:200%_200%] animate-gradient-x">Redimensionnez</span>, <span class="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text bg-[length:200%_200%] animate-gradient-x">recadrez</span> et <span class="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text bg-[length:200%_200%] animate-gradient-x">compressez</span> jusqu'à 100 images d'un seul coup en 1 clic !</h1>
-                <p class="mb-8 font-normal text-gray-500 sm:px-16 xl:px-48 ">Vous en avez marre de traiter vos images une par une ? Grâce à notre outil, déposez autant d'images que vous le souhaitez, choisissez les traitement que vous voulez appliquez avec leur paramètres et toutes vos images seront traitées en seulement quelques secondes ! Plus besoin de faire les opérations une par une.</p>
+                <h1 class="mb-4 text-4xl font-bold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-5xl">
+                    <span class="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text bg-[length:200%_200%] animate-gradient-x">Redimensionnez</span>, 
+                    <span class="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text bg-[length:200%_200%] animate-gradient-x">recadrez</span> et 
+                    <span class="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text bg-[length:200%_200%] animate-gradient-x">compressez</span> 
+                    jusqu'à 100 images d'un seul coup en 1 clic !
+                </h1>
+                <p class="mb-8 font-normal text-gray-500 sm:px-16 xl:px-48">
+                    Vous en avez marre de traiter vos images une par une ? Grâce à notre outil, déposez autant d'images que vous le souhaitez, choisissez les traitements que vous voulez appliquer avec leurs paramètres et toutes vos images seront traitées en seulement quelques secondes ! Plus besoin de faire les opérations une par une.
+                </p>
             </div>
         </section>
+        
+        <!-- Composant principal -->
         <ImageCropper5 />
     </div>
+
+    <!-- Section Avantages -->
+    <section class="py-20 bg-gradient-to-br from-gray-50 to-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Pourquoi choisir notre outil ?
+                </h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Une solution complète pensée pour les professionnels et créateurs qui veulent optimiser leur workflow
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Avantage 1 -->
+                <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                    <div class="w-16 h-16 bg-gradient-to-br from-primary to-green-400 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Ultra-rapide</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Traitez jusqu'à 100 images simultanément en quelques secondes. Notre algorithme optimisé garantit des performances exceptionnelles même sur de gros volumes.
+                    </p>
+                </div>
+
+                <!-- Avantage 2 -->
+                <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                    <div class="w-16 h-16 bg-gradient-to-br from-secondary to-red-400 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Qualité préservée</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Algorithmes de compression intelligents et filtres de netteté pour maintenir la qualité visuelle tout en optimisant la taille des fichiers.
+                    </p>
+                </div>
+
+                <!-- Avantage 3 -->
+                <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">100% sécurisé</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        Aucun upload sur serveur. Tout le traitement se fait directement dans votre navigateur pour une sécurité maximale de vos données.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Fonctionnalités -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                        Fonctionnalités avancées
+                    </h2>
+                    <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                        Tout ce dont vous avez besoin pour optimiser vos images comme un professionnel
+                    </p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-12 items-center mb-16">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-6">Redimensionnement intelligent</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Proportions conservées</h4>
+                                    <p class="text-gray-600">Redimensionnez de 10% à 200% sans déformation</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <div class="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Optimisation automatique</h4>
+                                    <p class="text-gray-600">Limitation intelligente pour éviter les problèmes de mémoire</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8">
+                        <div class="bg-white rounded-xl p-6 shadow-lg">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-sm font-medium text-gray-600">Taille</span>
+                                <span class="text-lg font-bold text-primary">80%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-primary to-green-400 h-2 rounded-full" style="width: 80%"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Les proportions sont conservées</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-12 items-center mb-16">
+                    <div class="lg:order-2">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-6">Recadrage précis</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="w-6 h-6 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Formats prédéfinis</h4>
+                                    <p class="text-gray-600">1:1, 16:9, 4:3, 3:4, 9:16 ou format libre</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <div class="w-6 h-6 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Positionnement automatique</h4>
+                                    <p class="text-gray-600">Centre, haut, bas, gauche, droite ou manuel</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <div class="w-6 h-6 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Prévisualisation interactive</h4>
+                                    <p class="text-gray-600">Interface intuitive pour le recadrage manuel</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-8 lg:order-1">
+                        <div class="bg-white rounded-xl p-6 shadow-lg">
+                            <div class="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mb-4 relative overflow-hidden">
+                                <div class="absolute inset-4 border-2 border-secondary border-dashed rounded"></div>
+                                <div class="absolute top-2 left-2 w-2 h-2 bg-secondary rounded-full"></div>
+                                <div class="absolute top-2 right-2 w-2 h-2 bg-secondary rounded-full"></div>
+                                <div class="absolute bottom-2 left-2 w-2 h-2 bg-secondary rounded-full"></div>
+                                <div class="absolute bottom-2 right-2 w-2 h-2 bg-secondary rounded-full"></div>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Format: 16:9</span>
+                                <span class="text-secondary font-medium">Position: Centre</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-6">Compression intelligente</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Formats modernes</h4>
+                                    <p class="text-gray-600">WebP, JPEG, PNG avec optimisation automatique</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Qualité ajustable</h4>
+                                    <p class="text-gray-600">Contrôle précis de 60% à 100% avec prévisualisation</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4">
+                                <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Économies prédictives</h4>
+                                    <p class="text-gray-600">Estimation en temps réel des gains de poids</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8">
+                        <div class="bg-white rounded-xl p-6 shadow-lg">
+                            <div class="mb-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium text-gray-600">Économies estimées</span>
+                                    <span class="text-lg font-bold text-green-600">65%</span>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-gray-500">Avant: 12.5 MB</span>
+                                        <span class="text-green-600">Après: 4.3 MB</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full" style="width: 65%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-500 text-center">
+                                🌱 8.2g CO₂ économisés en transfert
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Innovation -->
+    <section class="py-20 bg-gradient-to-br from-primary/5 to-secondary/5">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+                    Une approche innovante
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-8 mb-12">
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+                        <div class="w-16 h-16 bg-gradient-to-br from-primary to-green-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Traitement côté client</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            Contrairement aux outils traditionnels, tout se passe dans votre navigateur. Aucun serveur, aucun upload, une sécurité maximale.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+                        <div class="w-16 h-16 bg-gradient-to-br from-secondary to-red-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Performance optimisée</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            Algorithmes avancés, traitement par chunks, et utilisation d'OffscreenCanvas pour des performances exceptionnelles.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-white/30">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Impact environnemental</h3>
+                    <p class="text-lg text-gray-600 mb-6">
+                        En optimisant vos images, vous réduisez leur poids et donc l'impact carbone de leur transfert sur le web. 
+                        Notre outil calcule automatiquement les économies CO₂ réalisées.
+                    </p>
+                    <div class="inline-flex items-center space-x-2 bg-green-100 text-green-800 px-4 py-2 rounded-full">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="font-medium">Contribution à un web plus vert</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Stats -->
+    <section class="py-20 bg-gray-900 text-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                    Des résultats concrets
+                </h2>
+                <p class="text-lg text-gray-300 max-w-2xl mx-auto">
+                    Notre outil fait déjà ses preuves auprès de nombreux utilisateurs
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-primary mb-2">100</div>
+                    <div class="text-gray-300">Images max par lot</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-secondary mb-2">65%</div>
+                    <div class="text-gray-300">Économie moyenne</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-blue-400 mb-2">3s</div>
+                    <div class="text-gray-300">Temps moyen de traitement</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-green-400 mb-2">100%</div>
+                    <div class="text-gray-300">Sécurisé et privé</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section CTA Final -->
+    <section class="py-20 bg-gradient-to-r from-primary to-secondary text-white">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">
+                Prêt à optimiser vos images ?
+            </h2>
+            <p class="text-xl mb-8 max-w-2xl mx-auto opacity-90">
+                Rejoignez les milliers d'utilisateurs qui ont déjà adopté notre solution pour leurs projets
+            </p>
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" 
+                    class="bg-white text-primary px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                Commencer maintenant
+            </button>
+        </div>
+    </section>
 </MainLayout>
