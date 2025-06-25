@@ -40,9 +40,9 @@ const nonce = Buffer.from(Math.random().toString(36) + Date.now().toString()).to
 				});
 			}
 			
-			// Observer pour détecter les uploads
-			document.addEventListener('DOMContentLoaded', function() {
-				// Observer les inputs file
+			// Observer pour détecter les uploads avec un délai
+			function setupImageTracking() {
+				// Observer les inputs file (existants et futurs)
 				const fileInputs = document.querySelectorAll('input[type="file"]');
 				fileInputs.forEach(input => {
 					input.addEventListener('change', function(e) {
@@ -56,7 +56,62 @@ const nonce = Buffer.from(Math.random().toString(36) + Date.now().toString()).to
 						}
 					});
 				});
-			});
+				
+				// Observer les zones de drop
+				const dropZones = document.querySelectorAll('#dropzone, .dropzone, [ondrop]');
+				dropZones.forEach(zone => {
+					zone.addEventListener('drop', function(e) {
+						const files = e.dataTransfer?.files;
+						if (files) {
+							const imageFiles = Array.from(files).filter(file => 
+								file.type.startsWith('image/')
+							);
+							if (imageFiles.length > 0) {
+								trackImageUpload();
+							}
+						}
+					});
+				});
+			
+				// Observer les changements DOM pour les éléments ajoutés dynamiquement
+				const observer = new MutationObserver(function(mutations) {
+					let needsResetup = false;
+					mutations.forEach(function(mutation) {
+						mutation.addedNodes.forEach(function(node) {
+							if (node.nodeType === 1) { // Element node
+								// Vérifier si c'est un input file ou contient des inputs file
+								if (node.matches && node.matches('input[type="file"]')) {
+									needsResetup = true;
+								} else if (node.querySelector && node.querySelector('input[type="file"]')) {
+									needsResetup = true;
+								}
+								// Vérifier les dropzones
+								if (node.matches && (node.matches('#dropzone') || node.matches('.dropzone'))) {
+									needsResetup = true;
+								}
+							}
+						});
+					});
+					if (needsResetup) {
+						setupImageTracking();
+					}
+				});
+			
+				observer.observe(document.body, {
+					childList: true,
+					subtree: true
+				});
+			}
+			
+			// Configurer le tracking une fois le DOM chargé
+			document.addEventListener('DOMContentLoaded', setupImageTracking);
+			
+			// Aussi configurer immédiatement si le DOM est déjà chargé
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', setupImageTracking);
+			} else {
+				setupImageTracking();
+			}
 			</script>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
