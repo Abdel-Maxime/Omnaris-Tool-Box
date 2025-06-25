@@ -19,6 +19,45 @@ const nonce = Buffer.from(Math.random().toString(36) + Date.now().toString()).to
 			'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 		})(window,document,'script','dataLayer','GTM-WS55PD3N');</script>
 		<!-- End Google Tag Manager -->
+		<script>
+			// Initialiser le compteur en début de session
+			if (!sessionStorage.getItem('imageUploadCount')) {
+				sessionStorage.setItem('imageUploadCount', '0');
+			}
+			
+			// Fonction pour intercepter les uploads d'images
+			function trackImageUpload() {
+				// Incrémenter le compteur
+				let count = parseInt(sessionStorage.getItem('imageUploadCount')) + 1;
+				sessionStorage.setItem('imageUploadCount', count.toString());
+				
+				// Envoyer l'événement à GTM
+				window.dataLayer = window.dataLayer || [];
+				window.dataLayer.push({
+					'event': 'image_uploaded',
+					'imageUploadCount': count,
+					'uploadTimestamp': new Date().toISOString()
+				});
+			}
+			
+			// Observer pour détecter les uploads
+			document.addEventListener('DOMContentLoaded', function() {
+				// Observer les inputs file
+				const fileInputs = document.querySelectorAll('input[type="file"]');
+				fileInputs.forEach(input => {
+					input.addEventListener('change', function(e) {
+						if (e.target.files && e.target.files.length > 0) {
+							const imageFiles = Array.from(e.target.files).filter(file => 
+								file.type.startsWith('image/')
+							);
+							if (imageFiles.length > 0) {
+								trackImageUpload();
+							}
+						}
+					});
+				});
+			});
+			</script>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
 		<!-- Security headers -->
