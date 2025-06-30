@@ -2,7 +2,7 @@
 // Component Imports
 import { Button } from "@/components/ui/button";
 import MainLayout from "../layouts/main.astro";
-import ImageCropper5 from '../components/imageCropper5.astro';
+import ImageCropper6 from "@/components/imageCropper6.astro";
 
 // SEO Configuration
 const seoConfig = {
@@ -68,6 +68,9 @@ const seoConfig = {
                     Vous cherchez un <strong>outil pour redimensionner plusieurs images simultanément</strong> ? Notre solution de <strong>traitement par lot d'images</strong> vous permet de <strong>compresser images en lot</strong>, les recadrer et les optimiser en quelques secondes. Idéal pour les photographes, webmasters et créateurs de contenu.
                 </p>
 
+                <!-- Composant principal -->
+        <ImageCropper6 />
+
                 <!-- Badges de confiance -->
                 <div class="flex flex-wrap justify-center gap-4 mb-8">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
@@ -92,8 +95,7 @@ const seoConfig = {
             </div>
         </section>
         
-        <!-- Composant principal -->
-        <ImageCropper5 />
+        
     </div>
 
    
