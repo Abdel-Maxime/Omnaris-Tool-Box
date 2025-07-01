@@ -54,7 +54,7 @@ export class ImageProcessor {
                             return {
                                 success: true,
                                 blob: result.blob,
-                                name: generateFileName(file.name, state.selectedTemplate, this.getCurrentSettings()),
+                                name: generateFileName(file.name, this.getCurrentSettings(), state.selectedTemplate),
                                 originalSize: file.size,
                                 newSize: result.blob.size
                             };
