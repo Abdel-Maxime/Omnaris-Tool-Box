@@ -1,0 +1,194 @@
+---
+// src/pages/blog/index.astro
+import { getCollection } from 'astro:content';
+import MainLayout from '../../layouts/main.astro';
+
+// Récupérer tous les articles de blog et les trier par date (plus récent en premier)
+const blogPosts = await getCollection('blog');
+const sortedPosts = blogPosts.sort((a, b) => 
+  new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime()
+);
+
+const seoConfig = {
+  title: "Blog - Conseils et astuces pour optimiser vos images | Tool Box Omnaris",
+  description: "Découvrez nos articles sur l'optimisation d'images, les meilleures pratiques web, et les astuces pour améliorer les performances de votre site.",
+  keywords: "blog optimisation images, conseils web, compression images, performance web",
+  canonical: "https://toolbox.omnaris.fr/blog/",
+  ogImage: "/og-image-blog.jpg"
+};
+---
+
+<MainLayout content={seoConfig}>
+  <div class="container mx-auto py-12 px-4">
+    <!-- Header du blog -->
+    <div class="text-center mb-16">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+        Blog <span class="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text">Tool Box</span>
+      </h1>
+      <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+        Conseils, astuces et guides pour optimiser vos images et améliorer les performances de votre site web
+      </p>
+    </div>
+
+    <!-- Articles en vedette -->
+    {sortedPosts.some(post => post.data.featured) && (
+      <section class="mb-16">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8">Articles en vedette</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          {sortedPosts.filter(post => post.data.featured).slice(0, 3).map((post) => (
+            <article class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 border">
+              {post.data.image && (
+                <div class="aspect-video overflow-hidden">
+                  <img 
+                    src={post.data.image} 
+                    alt={post.data.title}
+                    class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              )}
+              <div class="p-6">
+                <div class="flex items-center gap-2 mb-3">
+                  <span class="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                    Vedette
+                  </span>
+                  <time class="text-sm text-gray-500">
+                    {new Date(post.data.publishDate).toLocaleDateString('fr-FR', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </time>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
+                  <a href={`/blog/${post.slug}`} class="hover:text-primary transition-colors">
+                    {post.data.title}
+                  </a>
+                </h3>
+                <p class="text-gray-600 mb-4 line-clamp-3">
+                  {post.data.description}
+                </p>
+                {post.data.tags && (
+                  <div class="flex flex-wrap gap-2 mb-4">
+                    {post.data.tags.slice(0, 3).map((tag) => (
+                      <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <a 
+                  href={`/blog/${post.slug}`}
+                  class="inline-flex items-center text-primary hover:text-secondary font-medium transition-colors"
+                >
+                  Lire l'article
+                  <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Tous les articles -->
+    <section>
+      <h2 class="text-2xl font-bold text-gray-900 mb-8">Tous les articles</h2>
+      {sortedPosts.length === 0 ? (
+        <div class="text-center py-16">
+          <p class="text-gray-600 text-lg">Aucun article publié pour le moment.</p>
+          <p class="text-gray-500 mt-2">Revenez bientôt pour découvrir nos premiers contenus !</p>
+        </div>
+      ) : (
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {sortedPosts.map((post) => (
+            <article class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100">
+              {post.data.image && (
+                <div class="aspect-video overflow-hidden">
+                  <img 
+                    src={post.data.image} 
+                    alt={post.data.title}
+                    class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              )}
+              <div class="p-6">
+                <div class="flex items-center justify-between mb-3">
+                  <time class="text-sm text-gray-500">
+                    {new Date(post.data.publishDate).toLocaleDateString('fr-FR', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </time>
+                  {post.data.featured && (
+                    <span class="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">
+                      Vedette
+                    </span>
+                  )}
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
+                  <a href={`/blog/${post.slug}`} class="hover:text-primary transition-colors">
+                    {post.data.title}
+                  </a>
+                </h3>
+                <p class="text-gray-600 mb-4 line-clamp-3">
+                  {post.data.description}
+                </p>
+                {post.data.tags && (
+                  <div class="flex flex-wrap gap-2 mb-4">
+                    {post.data.tags.slice(0, 3).map((tag) => (
+                      <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <a 
+                  href={`/blog/${post.slug}`}
+                  class="inline-flex items-center text-primary hover:text-secondary font-medium transition-colors"
+                >
+                  Lire l'article
+                  <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+
+    <!-- CTA Section -->
+    <section class="mt-20 bg-gradient-to-r from-primary to-secondary rounded-2xl p-8 text-center text-white">
+      <h2 class="text-3xl font-bold mb-4">Besoin d'optimiser vos images ?</h2>
+      <p class="text-xl mb-6 opacity-90">
+        Utilisez notre outil gratuit pour traiter vos images par lot
+      </p>
+      <a 
+        href="/"
+        class="inline-block bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+      >
+        Utiliser l'outil
+      </a>
+    </section>
+  </div>
+</MainLayout>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

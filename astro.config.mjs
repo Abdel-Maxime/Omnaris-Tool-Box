@@ -6,7 +6,10 @@ import path from "path";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(), react()],
+  integrations: [
+    tailwind(), // Pas besoin de configurer les plugins ici
+    react()
+  ],
   vite: {
     resolve: {
       alias: {
@@ -15,17 +18,13 @@ export default defineConfig({
     },
     server: {
       fs: {
-        // Restrict serving files outside of the project root
         allow: ['.'],
         strict: true
       }
     },
     build: {
-      // Improve output minification
       minify: 'terser',
-      // Prevent source map generation in production
       sourcemap: false,
-      // Terser options for better security
       terserOptions: {
         compress: {
           drop_console: true,

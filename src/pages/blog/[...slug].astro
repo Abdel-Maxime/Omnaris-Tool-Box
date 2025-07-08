@@ -1,0 +1,1255 @@
+---
+// src/pages/blog/[...slug].astro
+import { getCollection } from 'astro:content';
+import MainLayout from '../../layouts/main.astro';
+import CTA from '../../components/CTA.astro';
+
+// Générer les chemins statiques pour tous les articles
+export async function getStaticPaths() {
+  const blogPosts = await getCollection('blog');
+  return blogPosts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await post.render();
+
+// Calculer le temps de lecture (200 mots par minute)
+function calculateReadingTime(content) {
+  const wordsPerMinute = 200;
+  const wordCount = content.split(/\s+/).length;
+  return Math.ceil(wordCount / wordsPerMinute);
+}
+
+const readingTime = post.data.readingTime || calculateReadingTime(post.body);
+
+// Configuration SEO dynamique basée sur l'article
+const seoConfig = {
+  title: `${post.data.title} | Blog Tool Box Omnaris`,
+  description: post.data.description,
+  keywords: post.data.tags ? post.data.tags.join(', ') : 'optimisation images, performance web',
+  canonical: `https://toolbox.omnaris.fr/blog/${post.slug}/`,
+  ogImage: post.data.image || "/og-image-blog.jpg"
+};
+
+// Récupérer d'autres articles pour les suggestions
+const allPosts = await getCollection('blog');
+const otherPosts = allPosts
+  .filter(p => p.slug !== post.slug)
+  .sort((a, b) => new Date(b.data.publishDate).getTime() - new Date(a.data.publishDate).getTime())
+  .slice(0, 3);
+
+// Générer le sommaire à partir des headings H2 et H3
+const tocItems = headings.filter(h => h.depth <= 3).map(heading => ({
+  ...heading,
+  slug: heading.slug || heading.text.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+}));
+---
+
+<MainLayout content={seoConfig}>
+  <!-- Schema.org JSON-LD pour article -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": post.data.title,
+    "description": post.data.description,
+    "abstract": post.data.summary,
+    "author": {
+      "@type": "Organization",
+      "name": post.data.author
+    },
+    "datePublished": post.data.publishDate.toISOString(),
+    "dateModified": (post.data.updatedDate || post.data.publishDate).toISOString(),
+    "image": post.data.image ? `https://toolbox.omnaris.fr${post.data.image}` : "https://toolbox.omnaris.fr/og-image-blog.jpg",
+    "url": `https://toolbox.omnaris.fr/blog/${post.slug}/`,
+    "wordCount": post.body.split(/\s+/).length,
+    "timeRequired": `PT${readingTime}M`,
+    "publisher": {
+      "@type": "Organization",
+      "name": "Omnaris",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://toolbox.omnaris.fr/logo.png"
+      }
+    }
+  })} />
+
+  <!-- Barre de progression de lecture -->
+  <div id="reading-progress" class="fixed top-0 left-0 w-full h-1 bg-gray-100 z-50">
+    <div id="progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-150 ease-out" style="width: 0%"></div>
+  </div>
+
+  <!-- Container principal avec layout grid -->
+  <div class="min-h-screen bg-white">
+    <div class="max-w-8xl mx-auto grid lg:grid-cols-[280px_1fr] gap-6 px-4 lg:px-6">
+      
+      <!-- SIDEBAR - Table des matières -->
+      <aside class="hidden lg:block">
+        <div class="sticky top-24 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-h-[calc(100vh-6rem)] overflow-y-auto">
+          <!-- Header sidebar -->
+          <div class="mb-6 pb-4 border-b border-gray-100">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span class="text-blue-600">📑</span>
+              Sommaire
+            </h3>
+            <div class="grid grid-cols-1 gap-2 text-sm">
+              <div class="flex items-center gap-2 text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium">{readingTime} min de lecture</span>
+              </div>
+              <div class="flex items-center gap-2 text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
+                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span class="font-medium">{post.body.split(/\s+/).length} mots</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation du sommaire -->
+          <nav class="space-y-1 mb-6">
+            {tocItems.map((item) => (
+              <a 
+                href={`#${item.slug}`}
+                class={`group block py-3 px-4 rounded-xl text-sm hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 toc-link border-l-2 border-transparent hover:border-blue-200 ${
+                  item.depth === 2 ? 'text-gray-900 font-semibold' : 
+                  item.depth === 3 ? 'text-gray-700 ml-4 font-medium' : 
+                  'text-gray-600 ml-8'
+                }`}
+                data-target={item.slug}
+              >
+                <span class="flex items-center gap-2">
+                  {item.depth === 2 && (
+                    <span class="w-2 h-2 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  )}
+                  {item.text}
+                </span>
+              </a>
+            ))}
+          </nav>
+
+          <!-- Partage social -->
+          <div class="pt-4 border-t border-gray-100">
+            <h4 class="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span class="text-purple-600">🔗</span>
+              Partager
+            </h4>
+            <div class="flex gap-2">
+              <a 
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.data.title)}&url=${encodeURIComponent(`https://toolbox.omnaris.fr/blog/${post.slug}/`)}`}
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="flex-1 p-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors text-center"
+                aria-label="Partager sur Twitter"
+              >
+                <svg class="w-4 h-4 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                </svg>
+              </a>
+              <a 
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://toolbox.omnaris.fr/blog/${post.slug}/`)}`}
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="flex-1 p-3 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-colors text-center"
+                aria-label="Partager sur LinkedIn"
+              >
+                <svg class="w-4 h-4 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+              </a>
+              <button 
+                id="copy-link"
+                class="flex-1 p-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors"
+                aria-label="Copier le lien"
+              >
+                <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- BOUTON MOBILE SOMMAIRE -->
+      <button id="toc-toggle" class="lg:hidden fixed left-4 top-24 z-40 p-3 bg-white rounded-full shadow-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200" aria-label="Ouvrir le sommaire">
+        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+        </svg>
+      </button>
+
+      <!-- CONTENU PRINCIPAL -->
+      <main class="min-w-0">
+        <article class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <!-- Breadcrumb -->
+          <nav class="px-8 py-4 border-b border-gray-100" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-2 text-sm text-gray-500">
+              <li><a href="/" class="hover:text-blue-600 transition-colors">Accueil</a></li>
+              <li><span>/</span></li>
+              <li><a href="/blog" class="hover:text-blue-600 transition-colors">Blog</a></li>
+              {post.data.category && (
+                <>
+                  <li><span>/</span></li>
+                  <li class="text-gray-700">{post.data.category}</li>
+                </>
+              )}
+              <li><span>/</span></li>
+              <li class="text-gray-900 font-medium truncate max-w-md">{post.data.title}</li>
+            </ol>
+          </nav>
+
+          <!-- Header de l'article -->
+          <header class="px-8 lg:px-16 py-8">
+            {post.data.image && (
+              <div class="aspect-video rounded-2xl overflow-hidden mb-8 shadow-lg">
+                <img 
+                  src={post.data.image} 
+                  alt={post.data.title}
+                  class="w-full h-full object-cover"
+                  loading="eager"
+                />
+              </div>
+            )}
+            
+            <div class="max-w-5xl">
+              <!-- Meta informations -->
+              <div class="flex flex-wrap items-center gap-4 mb-6 text-sm">
+                <time class="flex items-center gap-2 text-gray-600" datetime={post.data.publishDate.toISOString()}>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  {new Date(post.data.publishDate).toLocaleDateString('fr-FR', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </time>
+                
+                <div class="flex items-center gap-2 text-gray-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>{readingTime} min de lecture</span>
+                </div>
+
+                <div class="flex items-center gap-2 text-gray-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                  <span>Par {post.data.author}</span>
+                </div>
+              </div>
+              
+              <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                {post.data.title}
+              </h1>
+              
+              <p class="text-xl text-gray-700 mb-6 leading-relaxed">
+                {post.data.description}
+              </p>
+              
+              {post.data.tags && (
+                <div class="flex flex-wrap gap-2">
+                  {post.data.tags.map((tag) => (
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-gray-200 transition-colors">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </header>
+
+          <!-- Résumé de l'article -->
+          {post.data.summary && (
+            <section class="px-8 lg:px-16 mb-8">
+              <div class="max-w-5xl">
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-r-2xl p-6 shadow-sm">
+                  <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0 w-10 h-10 bg-blue-500 bg-opacity-10 rounded-full flex items-center justify-center">
+                      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                    </div>
+                    <div class="flex-1">
+                      <h2 class="text-lg font-bold text-gray-900 mb-3">📖 Résumé de l'article</h2>
+                      <p class="text-gray-800 leading-relaxed">
+                        {post.data.summary}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          <!-- Contenu de l'article -->
+          <div class="px-8 lg:px-16 pb-8">
+            <div class="max-w-5xl">
+              <div class="prose prose-lg max-w-none article-content
+                          /* === HEADINGS === */
+                          prose-headings:text-gray-900 prose-headings:font-bold prose-headings:scroll-mt-24
+                          prose-h1:text-4xl prose-h1:mt-0 prose-h1:mb-8 prose-h1:leading-tight
+                          prose-h2:text-2xl prose-h2:mt-16 prose-h2:mb-6 prose-h2:border-b prose-h2:border-gray-200 prose-h2:pb-4 prose-h2:relative
+                          prose-h3:text-xl prose-h3:mt-12 prose-h3:mb-4 prose-h3:text-gray-800
+                          prose-h4:text-lg prose-h4:mt-8 prose-h4:mb-3 prose-h4:text-gray-700
+                          prose-h5:text-base prose-h5:mt-6 prose-h5:mb-2 prose-h5:text-gray-600 prose-h5:font-semibold
+                          prose-h6:text-sm prose-h6:mt-4 prose-h6:mb-2 prose-h6:text-gray-500 prose-h6:font-medium prose-h6:uppercase prose-h6:tracking-wide
+                          
+                          /* === TEXT & PARAGRAPHS === */
+                          prose-p:text-gray-800 prose-p:leading-relaxed prose-p:mb-6 prose-p:text-lg
+                          prose-lead:text-xl prose-lead:text-gray-700 prose-lead:font-medium prose-lead:mb-8
+                          
+                          /* === LINKS === */
+                          prose-a:text-blue-600 prose-a:no-underline hover:prose-a:text-blue-700 prose-a:font-medium hover:prose-a:underline prose-a:transition-colors prose-a:duration-200
+                          
+                          /* === EMPHASIS === */
+                          prose-strong:text-gray-900 prose-strong:font-semibold
+                          prose-em:text-gray-700 prose-em:italic
+                          
+                          /* === LISTS === */
+                          prose-ul:my-6 prose-ul:space-y-2
+                          prose-ol:my-6 prose-ol:space-y-2
+                          prose-li:text-gray-800 prose-li:leading-relaxed prose-li:text-lg
+                          prose-li:marker:text-blue-500
+                          
+                          /* === QUOTES === */
+                          prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-gradient-to-r prose-blockquote:from-blue-50 prose-blockquote:to-indigo-50 
+                          prose-blockquote:py-6 prose-blockquote:px-8 prose-blockquote:my-8 prose-blockquote:rounded-r-xl prose-blockquote:shadow-sm
+                          prose-blockquote:not-italic prose-blockquote:text-gray-800 prose-blockquote:text-lg prose-blockquote:font-medium
+                          
+                          /* === CODE === */
+                          prose-code:bg-gray-100 prose-code:text-gray-800 prose-code:px-2 prose-code:py-1 prose-code:rounded-md prose-code:text-sm prose-code:font-mono prose-code:border
+                          prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-xl prose-pre:p-6 prose-pre:shadow-lg prose-pre:my-8 prose-pre:overflow-x-auto
+                          prose-pre:border prose-pre:border-gray-800 prose-pre:relative
+                          
+                          /* === TABLES === */
+                          prose-table:my-8 prose-table:shadow-lg prose-table:rounded-lg prose-table:overflow-hidden prose-table:border prose-table:border-gray-200
+                          prose-thead:bg-gray-50 prose-thead:border-b prose-thead:border-gray-200
+                          prose-th:px-6 prose-th:py-4 prose-th:text-left prose-th:font-semibold prose-th:text-gray-900 prose-th:text-sm prose-th:uppercase prose-th:tracking-wide
+                          prose-td:px-6 prose-td:py-4 prose-td:text-gray-800 prose-td:border-t prose-td:border-gray-200
+                          prose-tbody:divide-y prose-tbody:divide-gray-200
+                          
+                          /* === IMAGES === */
+                          prose-img:rounded-xl prose-img:shadow-lg prose-img:my-8 prose-img:border prose-img:border-gray-200
+                          prose-figure:my-8
+                          prose-figcaption:text-center prose-figcaption:text-sm prose-figcaption:text-gray-600 prose-figcaption:mt-3 prose-figcaption:italic
+                          
+                          /* === HORIZONTAL RULES === */
+                          prose-hr:border-gray-300 prose-hr:my-12 prose-hr:border-t-2
+                          
+                          /* === SMALL TEXT === */
+                          prose-sm:text-sm prose-sm:text-gray-600">
+                <Content />
+              </div>
+            </div>
+          </div>
+        </article>
+      </main>
+    </div>
+
+    <!-- Bouton retour en haut -->
+    <button id="back-to-top" class="fixed right-6 bottom-6 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 hover:scale-110 transition-all duration-200 opacity-0 pointer-events-none" aria-label="Retour en haut">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Overlay et sidebar mobile -->
+  <div id="mobile-toc-overlay" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+  
+  <aside id="mobile-toc" class="lg:hidden fixed left-0 top-0 w-80 h-full bg-white z-50 transform -translate-x-full transition-transform duration-300 overflow-y-auto">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-bold text-gray-900">📑 Sommaire</h3>
+        <button id="toc-close" class="p-2 text-gray-500 hover:text-gray-700">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <nav class="space-y-1">
+        {tocItems.map((item) => (
+          <a 
+            href={`#${item.slug}`}
+            class={`block py-2 px-3 rounded-lg text-sm hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 mobile-toc-link ${
+              item.depth === 2 ? 'text-gray-900 font-semibold' : 
+              item.depth === 3 ? 'text-gray-700 ml-4 font-medium' : 
+              'text-gray-600 ml-8'
+            }`}
+            data-target={item.slug}
+          >
+            {item.text}
+          </a>
+        ))}
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Articles suggérés -->
+  {otherPosts.length > 0 && (
+    <section class="py-16">
+      <div class="container mx-auto px-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-12">
+          Continuer la lecture
+        </h2>
+        <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {otherPosts.map((suggestedPost) => (
+            <article class="group bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100">
+              {suggestedPost.data.image && (
+                <div class="aspect-video overflow-hidden">
+                  <img 
+                    src={suggestedPost.data.image} 
+                    alt={suggestedPost.data.title}
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                </div>
+              )}
+              <div class="p-6">
+                <time class="text-sm text-gray-500 mb-3 block">
+                  {new Date(suggestedPost.data.publishDate).toLocaleDateString('fr-FR', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </time>
+                <h3 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                  <a href={`/blog/${suggestedPost.slug}`}>
+                    {suggestedPost.data.title}
+                  </a>
+                </h3>
+                <p class="text-gray-700 mb-4 line-clamp-3">
+                  {suggestedPost.data.description}
+                </p>
+                <a 
+                  href={`/blog/${suggestedPost.slug}`}
+                  class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors group"
+                >
+                  Lire l'article
+                  <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- Composant CTA -->
+  <CTA 
+    title="Prêt à optimiser vos images ?"
+    description="Mettez en pratique ces conseils avec notre outil gratuit de traitement par lot"
+    buttonText="Utiliser l'outil maintenant"
+    buttonLink="/"
+    variant="green-orange"
+  />
+</MainLayout>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Smooth scroll pour les ancres */
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+  }
+
+  /* Animation des liens du sommaire */
+  .toc-link.active {
+    @apply bg-blue-50 text-blue-700 border-blue-400;
+  }
+
+  .toc-link.active .opacity-0 {
+    @apply opacity-100;
+  }
+
+  /* === CONTENT STYLING === */
+  
+  /* Alertes/Callouts personnalisés */
+  .article-content .alert {
+    @apply p-6 rounded-xl border-l-4 my-8 shadow-sm;
+  }
+  
+  .article-content .alert-info {
+    @apply bg-blue-50 border-blue-500 text-blue-900;
+  }
+  
+  .article-content .alert-success {
+    @apply bg-green-50 border-green-500 text-green-900;
+  }
+  
+  .article-content .alert-warning {
+    @apply bg-yellow-50 border-yellow-500 text-yellow-900;
+  }
+  
+  .article-content .alert-danger {
+    @apply bg-red-50 border-red-500 text-red-900;
+  }
+
+  /* Boutons dans le contenu */
+  .article-content .btn {
+    @apply inline-flex items-center px-6 py-3 rounded-lg font-medium transition-all duration-200 no-underline;
+  }
+  
+  .article-content .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg;
+  }
+  
+  .article-content .btn-secondary {
+    @apply bg-gray-600 text-white hover:bg-gray-700 shadow-md hover:shadow-lg;
+  }
+  
+  .article-content .btn-success {
+    @apply bg-green-600 text-white hover:bg-green-700 shadow-md hover:shadow-lg;
+  }
+
+  /* Cartes de contenu */
+  .article-content .card {
+    @apply bg-white border border-gray-200 rounded-xl p-6 shadow-sm my-8;
+  }
+  
+  .article-content .card-header {
+    @apply border-b border-gray-200 pb-4 mb-4;
+  }
+  
+  .article-content .card-title {
+    @apply text-xl font-bold text-gray-900 m-0;
+  }
+
+  /* Badges et tags */
+  .article-content .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .article-content .badge-primary {
+    @apply bg-blue-100 text-blue-800;
+  }
+  
+  .article-content .badge-success {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .article-content .badge-warning {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+  
+  .article-content .badge-danger {
+    @apply bg-red-100 text-red-800;
+  }
+
+  /* Progress bars */
+  .article-content .progress {
+    @apply w-full bg-gray-200 rounded-full h-2 my-4;
+  }
+  
+  .article-content .progress-bar {
+    @apply h-full rounded-full transition-all duration-300;
+  }
+  
+  .article-content .progress-bar-primary {
+    @apply bg-blue-600;
+  }
+  
+  .article-content .progress-bar-success {
+    @apply bg-green-600;
+  }
+
+  /* Onglets */
+  .article-content .tabs {
+    @apply my-8;
+  }
+  
+  .article-content .tab-nav {
+    @apply flex border-b border-gray-200 mb-6;
+  }
+  
+  .article-content .tab-button {
+    @apply px-6 py-3 font-medium text-gray-600 border-b-2 border-transparent hover:text-blue-600 hover:border-blue-300 transition-all duration-200 cursor-pointer;
+  }
+  
+  .article-content .tab-button.active {
+    @apply text-blue-600 border-blue-600;
+  }
+  
+  .article-content .tab-content {
+    @apply hidden;
+  }
+  
+  .article-content .tab-content.active {
+    @apply block;
+  }
+
+  /* Accordéons */
+  .article-content .accordion {
+    @apply border border-gray-200 rounded-lg my-8 overflow-hidden;
+  }
+  
+  .article-content .accordion-item {
+    @apply border-b border-gray-200 last:border-b-0;
+  }
+  
+  .article-content .accordion-header {
+    @apply p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors duration-200 flex items-center justify-between;
+  }
+  
+  .article-content .accordion-title {
+    @apply font-semibold text-gray-900 m-0;
+  }
+  
+  .article-content .accordion-icon {
+    @apply w-5 h-5 text-gray-500 transition-transform duration-200;
+  }
+  
+  .article-content .accordion-content {
+    @apply p-4 bg-white;
+  }
+
+  /* Timeline */
+  .article-content .timeline {
+    @apply relative my-8 pl-8;
+  }
+  
+  .article-content .timeline::before {
+    @apply absolute left-2 top-0 bottom-0 w-0.5 bg-gray-300;
+    content: '';
+  }
+  
+  .article-content .timeline-item {
+    @apply relative mb-8 pb-8;
+  }
+  
+  .article-content .timeline-item::before {
+    @apply absolute -left-7 top-2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-sm;
+    content: '';
+  }
+  
+  .article-content .timeline-date {
+    @apply text-sm text-gray-500 font-medium mb-2;
+  }
+  
+  .article-content .timeline-content {
+    @apply bg-white border border-gray-200 rounded-lg p-4 shadow-sm;
+  }
+
+  /* Comparaisons avant/après */
+  .article-content .comparison {
+    @apply grid md:grid-cols-2 gap-6 my-8;
+  }
+  
+  .article-content .comparison-item {
+    @apply border border-gray-200 rounded-lg overflow-hidden;
+  }
+  
+  .article-content .comparison-header {
+    @apply p-4 text-center font-semibold;
+  }
+  
+  .article-content .comparison-before .comparison-header {
+    @apply bg-red-50 text-red-800;
+  }
+  
+  .article-content .comparison-after .comparison-header {
+    @apply bg-green-50 text-green-800;
+  }
+  
+  .article-content .comparison-content {
+    @apply p-4;
+  }
+
+  /* Galleries d'images */
+  .article-content .image-gallery {
+    @apply grid gap-4 my-8;
+  }
+  
+  .article-content .image-gallery.cols-2 {
+    @apply md:grid-cols-2;
+  }
+  
+  .article-content .image-gallery.cols-3 {
+    @apply md:grid-cols-3;
+  }
+  
+  .article-content .image-gallery.cols-4 {
+    @apply md:grid-cols-2 lg:grid-cols-4;
+  }
+
+  /* Tooltips */
+  .article-content .tooltip {
+    @apply relative inline-block cursor-pointer border-b border-dotted border-gray-400;
+  }
+  
+  .article-content .tooltip-content {
+    @apply absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-10;
+  }
+  
+  .article-content .tooltip:hover .tooltip-content {
+    @apply opacity-100 pointer-events-auto;
+  }
+
+  /* Code avec langage */
+  .article-content pre[class*="language-"] {
+    @apply relative;
+  }
+  
+  .article-content pre[class*="language-"]::before {
+    @apply absolute top-0 right-0 px-3 py-1 text-xs text-gray-400 bg-gray-800 rounded-bl-lg;
+    content: attr(data-language);
+  }
+
+  /* Tableaux responsive */
+  .article-content .table-responsive {
+    @apply overflow-x-auto my-8;
+  }
+
+  /* Highlights/Surlignage */
+  .article-content mark,
+  .article-content .highlight {
+    @apply bg-yellow-200 px-1 rounded;
+  }
+  
+  .article-content .highlight-blue {
+    @apply bg-blue-200 px-1 rounded;
+  }
+  
+  .article-content .highlight-green {
+    @apply bg-green-200 px-1 rounded;
+  }
+  
+  .article-content .highlight-red {
+    @apply bg-red-200 px-1 rounded;
+  }
+
+  /* Citations avec auteur */
+  .article-content .quote-with-author {
+    @apply my-8 p-6 bg-gray-50 border-l-4 border-gray-400 rounded-r-lg;
+  }
+  
+  .article-content .quote-text {
+    @apply text-lg italic text-gray-700 mb-4;
+  }
+  
+  .article-content .quote-author {
+    @apply text-sm text-gray-600 font-medium;
+  }
+
+  /* Listes de tâches */
+  .article-content .task-list {
+    @apply list-none pl-0;
+  }
+  
+  .article-content .task-list-item {
+    @apply flex items-start gap-3 mb-2;
+  }
+  
+  .article-content .task-list-item input[type="checkbox"] {
+    @apply mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500;
+  }
+
+  /* Embeds responsive */
+  .article-content .embed-responsive {
+    @apply relative w-full my-8;
+  }
+  
+  .article-content .embed-responsive-16x9 {
+    @apply pb-[56.25%]; /* 16:9 aspect ratio */
+  }
+  
+  .article-content .embed-responsive iframe {
+    @apply absolute top-0 left-0 w-full h-full rounded-lg;
+  }
+
+  /* Colonnes */
+  .article-content .columns-2 {
+    @apply md:gap-8;
+  }
+  
+  .article-content .columns-3 {
+    @apply lg:gap-6;
+  }
+
+  /* Séparateurs stylisés */
+  .article-content .divider {
+    @apply flex items-center my-12;
+  }
+  
+  .article-content .divider::before,
+  .article-content .divider::after {
+    @apply flex-1 h-px bg-gray-300;
+    content: '';
+  }
+  
+  .article-content .divider-text {
+    @apply px-4 text-sm text-gray-500 font-medium;
+  }
+
+  /* Liens externes avec icône */
+  .article-content a[href^="http"]:not([href*="toolbox.omnaris.fr"])::after {
+    @apply inline-block w-3 h-3 ml-1 opacity-60;
+    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14'%3E%3C/path%3E%3C/svg%3E");
+  }
+
+  /* Images avec légendes */
+  .article-content .figure-with-caption {
+    @apply my-8 text-center;
+  }
+  
+  .article-content .figure-caption {
+    @apply mt-3 text-sm text-gray-600 italic;
+  }
+
+  /* Stats/Métriques */
+  .article-content .stats-grid {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-4 my-8;
+  }
+  
+  .article-content .stat-item {
+    @apply text-center p-4 bg-gray-50 rounded-lg;
+  }
+  
+  .article-content .stat-number {
+    @apply text-2xl font-bold text-blue-600;
+  }
+  
+  .article-content .stat-label {
+    @apply text-sm text-gray-600 mt-1;
+  }
+
+  /* Styles d'impression */
+  @media print {
+    aside,
+    #back-to-top,
+    #reading-progress,
+    #toc-toggle,
+    .no-print {
+      display: none !important;
+    }
+    
+    .article-content {
+      @apply text-black;
+    }
+    
+    .article-content a {
+      @apply text-black underline;
+    }
+    
+    .article-content .alert,
+    .article-content .card {
+      @apply border border-gray-400;
+    }
+  }
+</style>
+
+<script>
+  // État global
+  let tocOpen = false;
+
+  // Initialisation
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeScrollEffects();
+    initializeTOC();
+    initializeCopyLink();
+    initializeBackToTop();
+    initializeContentInteractions();
+  });
+
+  // Effets de scroll
+  function initializeScrollEffects() {
+    const progressBar = document.getElementById('progress-bar');
+
+    window.addEventListener('scroll', () => {
+      const scrolled = window.pageYOffset;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = (scrolled / docHeight) * 100;
+
+      // Barre de progression
+      if (progressBar) {
+        progressBar.style.width = Math.min(progress, 100) + '%';
+      }
+    });
+  }
+
+  // Table des matières
+  function initializeTOC() {
+    const tocToggle = document.getElementById('toc-toggle');
+    const tocClose = document.getElementById('toc-close');
+    const mobileToc = document.getElementById('mobile-toc');
+    const mobileOverlay = document.getElementById('mobile-toc-overlay');
+    const tocLinks = document.querySelectorAll('.toc-link, .mobile-toc-link');
+
+    // Toggle TOC mobile
+    tocToggle?.addEventListener('click', () => {
+      tocOpen = true;
+      updateTOCVisibility();
+    });
+
+    tocClose?.addEventListener('click', () => {
+      tocOpen = false;
+      updateTOCVisibility();
+    });
+
+    // Fermer en cliquant sur l'overlay
+    mobileOverlay?.addEventListener('click', () => {
+      tocOpen = false;
+      updateTOCVisibility();
+    });
+
+    function updateTOCVisibility() {
+      if (mobileToc && mobileOverlay) {
+        if (tocOpen) {
+          mobileToc.style.transform = 'translateX(0)';
+          mobileOverlay.style.opacity = '1';
+          mobileOverlay.style.pointerEvents = 'auto';
+          document.body.style.overflow = 'hidden';
+        } else {
+          mobileToc.style.transform = 'translateX(-100%)';
+          mobileOverlay.style.opacity = '0';
+          mobileOverlay.style.pointerEvents = 'none';
+          document.body.style.overflow = '';
+        }
+      }
+    }
+
+    // Scroll spy pour le sommaire
+    const headings = document.querySelectorAll('h2[id], h3[id], h4[id]');
+    const observerOptions = {
+      rootMargin: '-20% 0px -80% 0px',
+      threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const id = entry.target.getAttribute('id');
+        const tocLink = document.querySelector(`[data-target="${id}"]`);
+        
+        if (entry.isIntersecting) {
+          // Retirer l'active de tous les liens
+          tocLinks.forEach(link => link.classList.remove('active'));
+          // Ajouter active au lien courant
+          tocLink?.classList.add('active');
+        }
+      });
+    }, observerOptions);
+
+    headings.forEach(heading => observer.observe(heading));
+
+    // Smooth scroll pour les liens TOC
+    tocLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = link.getAttribute('data-target');
+        const targetElement = document.getElementById(targetId);
+        
+        if (targetElement) {
+          targetElement.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+        
+        // Fermer le TOC mobile après clic
+        if (tocOpen) {
+          tocOpen = false;
+          updateTOCVisibility();
+        }
+      });
+    });
+  }
+
+  // Copier le lien
+  function initializeCopyLink() {
+    const copyButton = document.getElementById('copy-link');
+    
+    copyButton?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        
+        // Feedback visuel
+        const originalContent = copyButton.innerHTML;
+        copyButton.innerHTML = `
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        `;
+        copyButton.classList.remove('bg-gray-600');
+        copyButton.classList.add('bg-green-600');
+        
+        setTimeout(() => {
+          copyButton.innerHTML = originalContent;
+          copyButton.classList.remove('bg-green-600');
+          copyButton.classList.add('bg-gray-600');
+        }, 2000);
+      } catch (err) {
+        console.error('Erreur lors de la copie:', err);
+      }
+    });
+  }
+
+  // Retour en haut
+  function initializeBackToTop() {
+    const backToTop = document.getElementById('back-to-top');
+    
+    window.addEventListener('scroll', () => {
+      const scrolled = window.pageYOffset;
+
+      if (backToTop) {
+        if (scrolled > 300) {
+          backToTop.style.opacity = '1';
+          backToTop.style.pointerEvents = 'auto';
+        } else {
+          backToTop.style.opacity = '0';
+          backToTop.style.pointerEvents = 'none';
+        }
+      }
+    });
+    
+    backToTop?.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  }
+
+  // Interactions pour le contenu enrichi
+  function initializeContentInteractions() {
+    initializeTabs();
+    initializeAccordions();
+    initializeImageZoom();
+    initializeLazyLoading();
+    initializeProgressBars();
+    generateIdsForHeadings();
+  }
+
+  // Onglets
+  function initializeTabs() {
+    const tabContainers = document.querySelectorAll('.tabs');
+    
+    tabContainers.forEach(container => {
+      const tabButtons = container.querySelectorAll('.tab-button');
+      const tabContents = container.querySelectorAll('.tab-content');
+      
+      tabButtons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+          // Désactiver tous les onglets
+          tabButtons.forEach(btn => btn.classList.remove('active'));
+          tabContents.forEach(content => content.classList.remove('active'));
+          
+          // Activer l'onglet cliqué
+          button.classList.add('active');
+          if (tabContents[index]) {
+            tabContents[index].classList.add('active');
+          }
+        });
+      });
+      
+      // Activer le premier onglet par défaut
+      if (tabButtons[0] && tabContents[0]) {
+        tabButtons[0].classList.add('active');
+        tabContents[0].classList.add('active');
+      }
+    });
+  }
+
+  // Accordéons
+  function initializeAccordions() {
+    const accordionItems = document.querySelectorAll('.accordion-item');
+    
+    accordionItems.forEach(item => {
+      const header = item.querySelector('.accordion-header');
+      const content = item.querySelector('.accordion-content');
+      const icon = item.querySelector('.accordion-icon');
+      
+      if (header && content) {
+        // Cacher le contenu par défaut
+        content.style.display = 'none';
+        
+        header.addEventListener('click', () => {
+          const isOpen = content.style.display !== 'none';
+          
+          if (isOpen) {
+            content.style.display = 'none';
+            icon?.style.setProperty('transform', 'rotate(0deg)');
+          } else {
+            content.style.display = 'block';
+            icon?.style.setProperty('transform', 'rotate(180deg)');
+          }
+        });
+      }
+    });
+  }
+
+  // Zoom d'images
+  function initializeImageZoom() {
+    const images = document.querySelectorAll('.article-content img');
+    
+    images.forEach(img => {
+      img.addEventListener('click', () => {
+        if (img.classList.contains('zoomed')) {
+          img.classList.remove('zoomed');
+          img.style.transform = 'scale(1)';
+          img.style.cursor = 'zoom-in';
+          img.style.zIndex = 'auto';
+          img.style.position = 'relative';
+        } else {
+          img.classList.add('zoomed');
+          img.style.transform = 'scale(1.5)';
+          img.style.cursor = 'zoom-out';
+          img.style.zIndex = '50';
+          img.style.position = 'relative';
+          img.style.transition = 'transform 0.3s ease';
+        }
+      });
+      
+      // Curseur initial
+      img.style.cursor = 'zoom-in';
+    });
+  }
+
+  // Lazy loading pour images
+  function initializeLazyLoading() {
+    if ('IntersectionObserver' in window) {
+      const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            if (img.dataset.src) {
+              img.src = img.dataset.src;
+              img.classList.remove('lazy');
+              observer.unobserve(img);
+            }
+          }
+        });
+      });
+
+      document.querySelectorAll('img[data-src]').forEach(img => {
+        imageObserver.observe(img);
+      });
+    }
+  }
+
+  // Animation des barres de progression
+  function initializeProgressBars() {
+    const progressBars = document.querySelectorAll('.progress-bar[data-progress]');
+    
+    const progressObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const bar = entry.target;
+          const progress = bar.dataset.progress;
+          setTimeout(() => {
+            bar.style.width = progress + '%';
+          }, 200);
+          progressObserver.unobserve(bar);
+        }
+      });
+    });
+
+    progressBars.forEach(bar => {
+      bar.style.width = '0%';
+      progressObserver.observe(bar);
+    });
+  }
+
+  // Génération automatique d'IDs pour les titres
+  function generateIdsForHeadings() {
+    const headings = document.querySelectorAll('.article-content h2:not([id]), .article-content h3:not([id]), .article-content h4:not([id])');
+    
+    headings.forEach(heading => {
+      const text = heading.textContent.trim();
+      const id = text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+      
+      if (id && !document.getElementById(id)) {
+        heading.id = id;
+        
+        // Ajouter une ancre cliquable
+        const anchor = document.createElement('a');
+        anchor.href = `#${id}`;
+        anchor.className = 'heading-anchor opacity-0 hover:opacity-100 transition-opacity duration-200 text-blue-600 hover:text-blue-700 ml-2 no-underline';
+        anchor.innerHTML = '#';
+        anchor.setAttribute('aria-label', `Lien vers ${text}`);
+        
+        heading.appendChild(anchor);
+        
+        heading.addEventListener('mouseenter', () => {
+          anchor.classList.remove('opacity-0');
+        });
+        
+        heading.addEventListener('mouseleave', () => {
+          anchor.classList.add('opacity-0');
+        });
+      }
+    });
+  }
+
+  // Utilitaires pour le contenu interactif
+  window.toggleAccordion = function(element) {
+    const content = element.nextElementSibling;
+    const icon = element.querySelector('.accordion-icon');
+    
+    if (content.style.display === 'none' || !content.style.display) {
+      content.style.display = 'block';
+      icon?.style.setProperty('transform', 'rotate(180deg)');
+    } else {
+      content.style.display = 'none';
+      icon?.style.setProperty('transform', 'rotate(0deg)');
+    }
+  };
+
+  window.switchTab = function(tabIndex, container) {
+    const tabButtons = container.querySelectorAll('.tab-button');
+    const tabContents = container.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+    tabContents.forEach(content => content.classList.remove('active'));
+    
+    if (tabButtons[tabIndex] && tabContents[tabIndex]) {
+      tabButtons[tabIndex].classList.add('active');
+      tabContents[tabIndex].classList.add('active');
+    }
+  };
+
+  // Gestion des raccourcis clavier
+  document.addEventListener('keydown', (e) => {
+    // Échap pour fermer les overlays
+    if (e.key === 'Escape') {
+      if (tocOpen) {
+        tocOpen = false;
+        updateTOCVisibility();
+      }
+    }
+    
+    // Ctrl/Cmd + K pour focus sur la recherche (si présente)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      const searchInput = document.querySelector('input[type="search"]');
+      searchInput?.focus();
+    }
+  });
+</script>
