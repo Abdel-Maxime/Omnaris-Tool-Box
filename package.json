@@ -6,14 +6,17 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "i18n:pages": "node scripts/create-i18n-pages.js"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.4.1",
     "@radix-ui/react-slot": "^1.0.2",
     "@tailwindcss/typography": "^0.5.16",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "astro": "^5.8.2",
+    "astro-i18n-aut": "^0.7.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cropperjs": "^1.5.13",

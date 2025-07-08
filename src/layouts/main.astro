@@ -4,13 +4,16 @@ import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
 import SpeedInsights from '@vercel/speed-insights/astro';
 import Analytics from '@vercel/analytics/astro';
+import { getLangFromUrl } from '../i18n/utils';
+
 const { content } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
 
 // Generate a random nonce for CSP
 const nonce = Buffer.from(Math.random().toString(36) + Date.now().toString()).toString('base64');
 ---
 
-<html lang="fr-FR">
+<html lang={lang}>
 	<head>
 		<!-- Google Tag Manager -->
 		<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -112,7 +115,7 @@ const nonce = Buffer.from(Math.random().toString(36) + Date.now().toString()).to
 			} else {
 				setupImageTracking();
 			}
-			</script>
+		</script>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
 		<!-- Security headers -->
@@ -125,15 +128,22 @@ const nonce = Buffer.from(Math.random().toString(36) + Date.now().toString()).to
 		<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
 		<meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
 		<link rel="icon" type="image/svg+xml" href="/icone.png" />
+		<link rel="alternate" hreflang="fr" href={`https://toolbox.omnaris.fr${Astro.url.pathname}`} />
+		<link rel="alternate" hreflang="en" href={`https://toolbox.omnaris.fr/en${Astro.url.pathname}`} />
+		<link rel="alternate" hreflang="x-default" href={`https://toolbox.omnaris.fr${Astro.url.pathname}`} />
 		<title>{content.title}</title>
+		<meta name="description" content={content.description} />
+		{content.keywords && <meta name="keywords" content={content.keywords} />}
+		{content.canonical && <link rel="canonical" href={content.canonical} />}
+		{content.ogImage && <meta property="og:image" content={content.ogImage} />}
 	</head>
 	<body class="min-h-screen flex flex-col">
-	<SpeedInsights/>
-	<Analytics/>
-	<!-- Google Tag Manager (noscript) -->
-	<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WS55PD3N"
-					  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-	<!-- End Google Tag Manager (noscript) -->
+		<SpeedInsights/>
+		<Analytics/>
+		<!-- Google Tag Manager (noscript) -->
+		<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WS55PD3N"
+						  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+		<!-- End Google Tag Manager (noscript) -->
 		<Navigation />
 		<main class="pt-20 px-8 flex-grow">
 			<slot />

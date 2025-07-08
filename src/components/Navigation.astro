@@ -1,26 +1,32 @@
 ---
-// Navigation component
+import LanguageSelector from './LanguageSelector.astro';
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const localePath = lang === 'fr' ? '' : `/${lang}`;
 ---
 
 <nav class="bg-white border-b py-4 px-6 w-full h-20 fixed top-0 left-0 z-50">
   <div class="max-w-7xl mx-auto h-full flex items-center justify-between">
     <!-- Logo -->
     <div class="flex-shrink-0">
-      <a href="/" class="text-xl font-bold text-gray-800">
+      <a href={`${localePath}/`} class="text-xl font-bold text-gray-800">
         <img class="w-32" src="/logo.png" alt="Logo"/>
       </a>
     </div>
 
     <!-- Desktop Menu -->
     <div class="font-medium hidden md:flex items-center space-x-8">
-      <a href="/blog" class="text-black hover:text-primary transition-colors">Blog</a>
-      <a href="https://www.omnaris.fr" target="_blank" class="text-black hover:text-primary transition-colors">Visiter Omnaris</a>
+      <a href={`${localePath}/blog`} class="text-black hover:text-primary transition-colors">{t('nav.blog')}</a>
+      <a href="https://www.omnaris.fr" target="_blank" class="text-black hover:text-primary transition-colors">{t('nav.visit')}</a>
+      <LanguageSelector />
     </div>
 
     <!-- Contact Button -->
     <div class="hidden md:block">
       <a href="https://www.omnaris.fr/contact" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md transition-colors">
-        Nous contacter
+        {t('nav.contact')}
       </a>
     </div>
 
@@ -37,10 +43,11 @@
   <!-- Mobile Menu -->
   <div id="mobile-menu" class="md:hidden hidden fixed top-16 left-0 w-full bg-white shadow-md z-40 pb-4">
     <div class="flex flex-col space-y-4 px-6 pt-4">
-      <a href="/blog" class="text-gray-600 hover:text-gray-900 transition-colors">Blog</a>
-      <a href="https://www.omnaris.fr" class="text-gray-600 hover:text-gray-900 transition-colors">Visiter Omnaris</a>
+      <a href={`${localePath}/blog`} class="text-gray-600 hover:text-gray-900 transition-colors">{t('nav.blog')}</a>
+      <a href="https://www.omnaris.fr" class="text-gray-600 hover:text-gray-900 transition-colors">{t('nav.visit')}</a>
+      <LanguageSelector />
       <a href="https://www.omnaris.fr/contact" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md transition-colors flex justify-center w-full">
-        Contact
+        {t('nav.contact')}
       </a>
     </div>
   </div>

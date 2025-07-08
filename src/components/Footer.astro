@@ -1,5 +1,9 @@
 ---
-// Footer component
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const localePath = lang === 'fr' ? '' : `/${lang}`;
 ---
 
 <footer class="bg-gray-100 border-t py-8 px-6 mt-12 z-10">
@@ -7,37 +11,26 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
       <!-- Logo and company info -->
       <div class="flex flex-col space-y-4">
-        <a href="/" class="text-xl font-bold text-gray-800">
+        <a href={`${localePath}/`} class="text-xl font-bold text-gray-800">
           <img class="w-24" src="/logo.png" alt="Logo"/>
         </a>
         <p class="text-gray-600 text-sm">
-          Solutions innovantes pour vos projets digitaux
+          {t('footer.description')}
         </p>
       </div>
 
-      <!-- Pages -->
-      <!--<div>
-        <h3 class="font-semibold text-gray-800 mb-4">Pages</h3>
-        <ul class="space-y-2">
-          <li><a href="/" class="text-gray-600 hover:text-primary transition-colors">Accueil</a></li>
-          <li><a href="/services" class="text-gray-600 hover:text-primary transition-colors">Services</a></li>
-          <li><a href="/about" class="text-gray-600 hover:text-primary transition-colors">À propos</a></li>
-          <li><a href="/blog" class="text-gray-600 hover:text-primary transition-colors">Blog</a></li>
-        </ul>
-      </div>-->
-
       <!-- Services -->
       <div>
-        <h3 class="font-semibold text-gray-800 mb-4">Services</h3>
+        <h3 class="font-semibold text-gray-800 mb-4">{t('footer.services')}</h3>
         <ul class="space-y-2">
-          <li><a href="/services" class="text-gray-600 hover:text-primary transition-colors">Convertir</a></li>
-          <li><a href="https://www.omnaris.fr" class="text-gray-600 hover:text-primary transition-colors">Visiter Omnaris</a></li>
+          <li><a href={`${localePath}/services`} class="text-gray-600 hover:text-primary transition-colors">{t('footer.services.convert')}</a></li>
+          <li><a href="https://www.omnaris.fr" class="text-gray-600 hover:text-primary transition-colors">{t('nav.visit')}</a></li>
         </ul>
       </div>
 
       <!-- Social Media -->
       <div>
-        <h3 class="font-semibold text-gray-800 mb-4">Réseaux sociaux</h3>
+        <h3 class="font-semibold text-gray-800 mb-4">{t('footer.social')}</h3>
         <div class="flex align-top space-x-4">
           <a href="https://www.linkedin.com/in/maxime-daon/" target="_blank" rel="nofollow noopener noreferrer" class="text-gray-600 hover:text-primary transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -57,11 +50,11 @@
     <div class="border-t mt-8 pt-6">
       <div class="flex flex-col md:flex-row justify-between items-center">
         <p class="text-gray-600 text-sm mb-4 md:mb-0">
-          © {new Date().getFullYear()} Créé par <a href="https://www.omnaris.fr" class="text-primary hover:underline">Omnaris</a>. Tous droits réservés.
+          © {new Date().getFullYear()} {t('footer.copyright')} <a href="https://www.omnaris.fr" class="text-primary hover:underline">Omnaris</a>. {t('footer.rights')}
         </p>
         <div class="flex space-x-4 items-center justify-center">
-          <a href="/mentions-legales" class="text-gray-600 hover:text-primary text-sm transition-colors">Mentions légales</a>
-          <a href="/conditions-utilisation" class="text-gray-600 hover:text-primary text-sm transition-colors">Conditions d'utilisation</a>
+          <a href={`${localePath}/mentions-legales`} class="text-gray-600 hover:text-primary text-sm transition-colors">{t('footer.legal')}</a>
+          <a href={`${localePath}/conditions-utilisation`} class="text-gray-600 hover:text-primary text-sm transition-colors">{t('footer.terms')}</a>
         </div>
       </div>
     </div>

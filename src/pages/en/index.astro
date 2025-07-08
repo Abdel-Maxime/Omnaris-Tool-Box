@@ -1,0 +1,266 @@
+---
+// Import the same components as the French version
+import { Button } from "@/components/ui/button";
+import MainLayout from "../../layouts/main.astro";
+import ImageCropper7 from "@/components/imageCropper7.astro";
+import CTA from "@/components/CTA.astro";
+import { useTranslations } from '../../i18n/utils';
+
+const lang = 'en';
+const t = useTranslations(lang);
+
+// SEO Configuration
+const seoConfig = {
+  title: "Resize Multiple Images at Once | Free Batch Processing Tool",
+  description: "Resize, crop and compress up to 100 images simultaneously in 1 click. Free online batch image processing tool, 100% secure.",
+  keywords: "resize multiple images, batch image processing, compress images batch, multiple resizing tool",
+  canonical: "https://toolbox.omnaris.fr/en/",
+  ogImage: "/og-image-tool.jpg"
+};
+---
+
+<MainLayout content={{ 
+  title: seoConfig.title,
+  description: seoConfig.description,
+  keywords: seoConfig.keywords,
+  canonical: seoConfig.canonical,
+  ogImage: seoConfig.ogImage
+}}>
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Tool Box by Omnaris",
+      "description": "Free tool to resize, crop and compress multiple images simultaneously",
+      "url": "https://toolbox.omnaris.fr/en/",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "featureList": [
+        "Batch resizing",
+        "Automatic cropping", 
+        "Smart compression",
+        "Process up to 100 images",
+        "100% secure - no server upload"
+      ],
+      "screenshot": "/tool-screenshot.jpg"
+    })} />
+
+    <div class="container min-h-[70vh] flex flex-col justify-center mx-auto py-8">
+        <!-- Hero Section optimized for SEO -->
+        <section class="bg-white">
+            <div class="py-8 px-4 flex flex-col gap-6 justify-center items-center mx-auto max-w-screen-xl text-center lg:py-16 lg:px-12">
+                <p class="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200" role="alert">
+                    <span class="text-xs bg-primary-600 rounded-full text-primary px-4 py-1.5 mr-3">{t('home.hero.badge')}</span> 
+                    <span class="text-sm font-medium">{t('home.hero.badge.text')}</span>
+                    <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                </p>
+                
+                <h1 class="mb-4 text-4xl font-bold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-5xl">
+                    {t('home.hero.title')} 
+                    <span class="text-transparent bg-gradient-to-r from-primary to-secondary bg-clip-text bg-[length:200%_200%] animate-gradient-x">{t('home.hero.title.gradient')}</span>
+                </h1>
+                
+                <h2 class="mb-6 text-xl font-semibold text-gray-700">
+                    {t('home.hero.subtitle')}
+                </h2>
+                
+                <p class="mb-8 font-normal text-gray-500 sm:px-16 xl:px-48" set:html={t('home.hero.description')}>
+                </p>
+
+                <!-- Main component -->
+                <ImageCropper7 />
+
+                <!-- Trust badges -->
+                <div class="flex flex-wrap justify-center gap-4 mb-8">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        {t('badge.free')}
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                        </svg>
+                        {t('badge.secure')}
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        {t('badge.fast')}
+                    </span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Benefits Section with keywords -->
+    <section class="py-20 bg-gradient-to-br from-gray-50 to-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    {t('benefits.title')}
+                </h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto" set:html={t('benefits.subtitle')}>
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Benefit 1 -->
+                <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                    <div class="w-16 h-16 bg-gradient-to-br from-primary to-green-400 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">{t('benefits.speed.title')}</h3>
+                    <p class="text-gray-600 leading-relaxed" set:html={t('benefits.speed.description')}>
+                    </p>
+                </div>
+
+                <!-- Benefit 2 -->
+                <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                    <div class="w-16 h-16 bg-gradient-to-br from-secondary to-red-400 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">{t('benefits.compression.title')}</h3>
+                    <p class="text-gray-600 leading-relaxed" set:html={t('benefits.compression.description')}>
+                    </p>
+                </div>
+
+                <!-- Benefit 3 -->
+                <div class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">{t('benefits.security.title')}</h3>
+                    <p class="text-gray-600 leading-relaxed" set:html={t('benefits.security.description')}>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tutorial Section -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                        {t('tutorial.title')}
+                    </h2>
+                    <p class="text-lg text-gray-600">
+                        {t('tutorial.subtitle')}
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">1</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">{t('tutorial.step1.title')}</h3>
+                        <p class="text-gray-600">
+                            {t('tutorial.step1.description')}
+                        </p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-secondary text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">2</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">{t('tutorial.step2.title')}</h3>
+                        <p class="text-gray-600">
+                            {t('tutorial.step2.description')}
+                        </p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">3</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">{t('tutorial.step3.title')}</h3>
+                        <p class="text-gray-600">
+                            {t('tutorial.step3.description')}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section optimized for SEO -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">
+                    {t('faq.title')}
+                </h2>
+                
+                <div class="space-y-8">
+                    <div class="bg-white rounded-lg p-6 shadow-sm" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3" itemprop="name">
+                            {t('faq.q1')}
+                        </h3>
+                        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                            <p class="text-gray-600" itemprop="text" set:html={t('faq.a1')}>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 shadow-sm" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3" itemprop="name">
+                            {t('faq.q2')}
+                        </h3>
+                        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                            <p class="text-gray-600" itemprop="text" set:html={t('faq.a2')}>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 shadow-sm" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3" itemprop="name">
+                            {t('faq.q3')}
+                        </h3>
+                        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                            <p class="text-gray-600" itemprop="text" set:html={t('faq.a3')}>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 shadow-sm" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3" itemprop="name">
+                            {t('faq.q4')}
+                        </h3>
+                        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                            <p class="text-gray-600" itemprop="text" set:html={t('faq.a4')}>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg p-6 shadow-sm" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3" itemprop="name">
+                            {t('faq.q5')}
+                        </h3>
+                        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                            <p class="text-gray-600" itemprop="text" set:html={t('faq.a5')}>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section with keywords -->
+    <CTA 
+        title={t('cta.title')}
+        description={t('cta.description')}
+        buttonText={t('cta.button')}
+        buttonLink="/en/"
+    />
+</MainLayout>
